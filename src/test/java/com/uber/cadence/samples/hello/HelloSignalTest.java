@@ -25,6 +25,8 @@ import com.uber.cadence.samples.hello.HelloSignal.GreetingWorkflow;
 import com.uber.cadence.testing.TestWorkflowEnvironment;
 import com.uber.cadence.worker.Worker;
 import java.time.Duration;
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -80,21 +82,24 @@ public class HelloSignalTest {
         workflowClient.newWorkflowStub(GreetingWorkflow.class, workflowOptions);
 
     // Start workflow asynchronously to not use another thread to signal.
-    WorkflowClient.start(workflow::getGreeting);
+    WorkflowClient.start(workflow::getGreetings);
 
     // After start for getGreeting returns, the workflow is guaranteed to be started.
     // So we can send a signal to it using workflow stub immediately.
     // But just to demonstrate the unit testing of a long running workflow adding a long sleep here.
     testEnv.sleep(Duration.ofDays(1));
     workflow.waitForName("World");
+    // This workflow expects to receive two signals before it completes so we will send another one.
+    workflow.waitForName("Universe");
     // Calling synchronous getGreeting after workflow has started reconnects to the existing
     // workflow and
     // blocks until result is available. Note that this behavior assumes that WorkflowOptions are
     // not configured
     // with WorkflowIdReusePolicy.AllowDuplicate. In that case the call would fail with
     // WorkflowExecutionAlreadyStartedException.
-    String greeting = workflow.getGreeting();
-
-    assertEquals("Hello World!", greeting);
+    List<String> greetings = workflow.getGreetings();
+    assertEquals(2, greetings.size());
+    assertEquals("Hello World!", greetings.get(0));
+    assertEquals("Hello Universe!", greetings.get(1));
   }
 }
