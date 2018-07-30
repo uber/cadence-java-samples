@@ -26,6 +26,7 @@ import com.uber.cadence.testing.TestWorkflowEnvironment;
 import com.uber.cadence.worker.Worker;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.After;
 import org.junit.Before;
@@ -70,8 +71,8 @@ public class HelloSignalTest {
     testEnv.close();
   }
 
-  @Test(timeout = 5000)
-  public void testSignal() {
+  @Test//(timeout = 5000)
+  public void testSignal() throws Exception {
     // Get a workflow stub using the same task list the worker uses.
     WorkflowOptions workflowOptions =
         new WorkflowOptions.Builder()
@@ -82,7 +83,7 @@ public class HelloSignalTest {
         workflowClient.newWorkflowStub(GreetingWorkflow.class, workflowOptions);
 
     // Start workflow asynchronously to not use another thread to signal.
-    WorkflowClient.start(workflow::getGreetings);
+    WorkflowClient.start(workflow::getGreetings, 2);
 
     // After start for getGreeting returns, the workflow is guaranteed to be started.
     // So we can send a signal to it using workflow stub immediately.
@@ -97,7 +98,7 @@ public class HelloSignalTest {
     // not configured
     // with WorkflowIdReusePolicy.AllowDuplicate. In that case the call would fail with
     // WorkflowExecutionAlreadyStartedException.
-    List<String> greetings = workflow.getGreetings();
+    List<String> greetings = workflow.getGreetings(2);
     assertEquals(2, greetings.size());
     assertEquals("Hello World!", greetings.get(0));
     assertEquals("Hello Universe!", greetings.get(1));

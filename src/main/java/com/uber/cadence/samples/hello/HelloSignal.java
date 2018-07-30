@@ -29,6 +29,10 @@ import com.uber.cadence.workflow.WorkflowMethod;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Demonstrates asynchronous signalling of a workflow. Requires a local instance of Cadence server
@@ -41,9 +45,11 @@ public class HelloSignal {
 
   /** Workflow interface must have a method annotated with @WorkflowMethod. */
   public interface GreetingWorkflow {
-    /** @return greeting string */
+    /** @return list of greeting strings that were received through the
+     * waitForNameMethod. This method will block until the number of greetings
+     * specified are received. */
     @WorkflowMethod
-    List<String> getGreetings();
+    List<String> getGreetings(int numberOfGreetings);
 
     /** Receives name through an external signal. */
     @SignalMethod
@@ -53,34 +59,22 @@ public class HelloSignal {
   /** GreetingWorkflow implementation that returns a greeting. */
   public static class GreetingWorkflowImpl implements GreetingWorkflow {
 
-    private final int totalGreetings = 2;
-
-    private final CompletablePromise<Boolean> allNamesQueued = Workflow.newPromise();
-    private final List<String> names = new ArrayList<String>();
+    List<String> messages = new ArrayList<>(10);
 
     @Override
-    public List<String> getGreetings() {
-      allNamesQueued.get();
+    public List<String> getGreetings(int numberOfGreetings) {
+      Workflow.await(()-> messages.size() == numberOfGreetings);
 
-      List<String> response = new ArrayList<String>();
-
-      for (int i = 0; i<totalGreetings; i++){
-        response.add( "Hello " + names.remove(0) + "!");
-      }
-
-      return response;
+      return messages;
     }
 
     @Override
     public void waitForName(String name) {
-      names.add(name);
-      if(names.size() == totalGreetings){
-        allNamesQueued.complete(true);
-      }
+      messages.add("Hello " + name + "!");
     }
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     // Start a worker that hosts the workflow implementation.
     Worker worker = new Worker(DOMAIN, TASK_LIST);
     worker.registerWorkflowImplementationTypes(GreetingWorkflowImpl.class);
@@ -96,8 +90,9 @@ public class HelloSignal {
             .build();
     GreetingWorkflow workflow =
         workflowClient.newWorkflowStub(GreetingWorkflow.class, workflowOptions);
+    workflow.wait();
     // Start workflow asynchronously to not use another thread to signal.
-    WorkflowClient.start(workflow::getGreetings);
+    WorkflowClient.start(workflow::getGreetings,2);
     // After start for getGreeting returns, the workflow is guaranteed to be started.
     // So we can send a signal to it using workflow stub.
     // This workflow expects to be signaled two names for the workflow method 'getGreetings'
@@ -108,7 +103,7 @@ public class HelloSignal {
     // workflow and blocks until a result is available. Note that this behavior assumes that
     // WorkflowOptions are not configured with WorkflowIdReusePolicy.AllowDuplicate. In that case
     // the call would fail with WorkflowExecutionAlreadyStartedException.
-    List<String> greetings = workflow.getGreetings();
+    List<String> greetings = workflow.getGreetings(2);
     System.out.println(greetings);
     System.exit(0);
   }
