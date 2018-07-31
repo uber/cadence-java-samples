@@ -83,22 +83,23 @@ public class HelloSignalTest {
         workflowClient.newWorkflowStub(GreetingWorkflow.class, workflowOptions);
 
     // Start workflow asynchronously to not use another thread to signal.
-    WorkflowClient.start(workflow::getGreetings, 2);
+    WorkflowClient.start(workflow::getGreetings);
 
     // After start for getGreeting returns, the workflow is guaranteed to be started.
     // So we can send a signal to it using workflow stub immediately.
     // But just to demonstrate the unit testing of a long running workflow adding a long sleep here.
     testEnv.sleep(Duration.ofDays(1));
+    // This workflow keeps receiving signals until exit is called
     workflow.waitForName("World");
-    // This workflow expects to receive two signals before it completes so we will send another one.
     workflow.waitForName("Universe");
+    workflow.exit();
     // Calling synchronous getGreeting after workflow has started reconnects to the existing
     // workflow and
     // blocks until result is available. Note that this behavior assumes that WorkflowOptions are
     // not configured
     // with WorkflowIdReusePolicy.AllowDuplicate. In that case the call would fail with
     // WorkflowExecutionAlreadyStartedException.
-    List<String> greetings = workflow.getGreetings(2);
+    List<String> greetings = workflow.getGreetings();
     assertEquals(2, greetings.size());
     assertEquals("Hello World!", greetings.get(0));
     assertEquals("Hello Universe!", greetings.get(1));

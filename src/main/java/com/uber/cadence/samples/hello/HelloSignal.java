@@ -49,28 +49,45 @@ public class HelloSignal {
      * waitForNameMethod. This method will block until the number of greetings
      * specified are received. */
     @WorkflowMethod
-    List<String> getGreetings(int numberOfGreetings);
+    List<String> getGreetings();
 
     /** Receives name through an external signal. */
     @SignalMethod
     void waitForName(String name);
+
+    /** Receives name through an external signal. */
+    @SignalMethod
+    void exit();
   }
 
   /** GreetingWorkflow implementation that returns a greeting. */
   public static class GreetingWorkflowImpl implements GreetingWorkflow {
 
-    List<String> messages = new ArrayList<>(10);
+    List<String> messageQueue = new ArrayList<>(10);
+    boolean exit = false;
 
     @Override
-    public List<String> getGreetings(int numberOfGreetings) {
-      Workflow.await(()-> messages.size() == numberOfGreetings);
+    public List<String> getGreetings() {
+      List<String> receivedMessages = new ArrayList<>(10);
 
-      return messages;
+      while (true) {
+        Workflow.await(() -> !messageQueue.isEmpty() || exit);
+        if(messageQueue.isEmpty() && exit){
+          return receivedMessages;
+        }
+        String message = messageQueue.remove(0);
+        receivedMessages.add(message);
+      }
     }
 
     @Override
     public void waitForName(String name) {
-      messages.add("Hello " + name + "!");
+      messageQueue.add("Hello " + name + "!");
+    }
+
+    @Override
+    public void exit() {
+      exit = true;
     }
   }
 
@@ -92,18 +109,18 @@ public class HelloSignal {
         workflowClient.newWorkflowStub(GreetingWorkflow.class, workflowOptions);
     workflow.wait();
     // Start workflow asynchronously to not use another thread to signal.
-    WorkflowClient.start(workflow::getGreetings,2);
+    WorkflowClient.start(workflow::getGreetings);
     // After start for getGreeting returns, the workflow is guaranteed to be started.
     // So we can send a signal to it using workflow stub.
-    // This workflow expects to be signaled two names for the workflow method 'getGreetings'
-    // to complete.
+    // This workflow keeps receiving signals until exit is called
     workflow.waitForName("World");
     workflow.waitForName("Universe");
+    workflow.exit();
     // Calling synchronous getGreeting after workflow has started reconnects to the existing
     // workflow and blocks until a result is available. Note that this behavior assumes that
     // WorkflowOptions are not configured with WorkflowIdReusePolicy.AllowDuplicate. In that case
     // the call would fail with WorkflowExecutionAlreadyStartedException.
-    List<String> greetings = workflow.getGreetings(2);
+    List<String> greetings = workflow.getGreetings();
     System.out.println(greetings);
     System.exit(0);
   }
