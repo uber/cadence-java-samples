@@ -26,8 +26,6 @@ import com.uber.cadence.testing.TestWorkflowEnvironment;
 import com.uber.cadence.worker.Worker;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -61,7 +59,7 @@ public class HelloSignalTest {
 
     worker = testEnv.newWorker(HelloSignal.TASK_LIST);
     worker.registerWorkflowImplementationTypes(HelloSignal.GreetingWorkflowImpl.class);
-    worker.start();
+    testEnv.start();
 
     workflowClient = testEnv.newWorkflowClient();
   }
@@ -71,7 +69,7 @@ public class HelloSignalTest {
     testEnv.close();
   }
 
-  @Test//(timeout = 5000)
+  @Test // (timeout = 5000)
   public void testSignal() throws Exception {
     // Get a workflow stub using the same task list the worker uses.
     WorkflowOptions workflowOptions =
