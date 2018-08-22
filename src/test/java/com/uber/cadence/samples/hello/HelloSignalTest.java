@@ -70,9 +70,9 @@ public class HelloSignalTest {
   public void tearDown() {
     testEnv.close();
   }
-
-  @Test (timeout = 5000)
-  public void testSignal() throws Exception {
+  
+  @Test
+  public void testSignal() {
     // Get a workflow stub using the same task list the worker uses.
     WorkflowOptions workflowOptions =
         new WorkflowOptions.Builder()
