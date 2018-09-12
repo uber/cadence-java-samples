@@ -17,6 +17,8 @@
 
 package com.uber.cadence.samples.hello;
 
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
+
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.client.WorkflowOptions;
@@ -24,14 +26,15 @@ import com.uber.cadence.client.WorkflowStub;
 import com.uber.cadence.worker.Worker;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
-
+/**
+ * Demonstrates triggering an activity in response to a cancellation request. Requires a local
+ * instance of Cadence server to be running.
+ */
 public class HelloCancellation {
   static final String TASK_LIST = "HelloCancellation";
 
@@ -52,15 +55,15 @@ public class HelloCancellation {
   }
 
   /** GreetingWorkflow implementation that calls GreetingsActivities#composeGreeting. */
-  public static class GreetingWorkflowImpl implements HelloCancellation.GreetingWorkflow {
+  public static class GreetingWorkflowImpl implements GreetingWorkflow {
 
     /**
      * Activity stub implements activity interface and proxies calls to it to Cadence activity
      * invocations. Because activities are reentrant, only a single stub can be used for multiple
      * activity invocations.
      */
-    private final HelloCancellation.GreetingActivities activities =
-        Workflow.newActivityStub(HelloCancellation.GreetingActivities.class);
+    private final GreetingActivities activities =
+        Workflow.newActivityStub(GreetingActivities.class);
 
     @Override
     public String getGreeting(String name) throws Exception {
@@ -70,21 +73,22 @@ public class HelloCancellation {
       } catch (
           CancellationException
               e) { // This exception is thrown when a cancellation is requested on the current
-                   // workflow
+        // workflow
         /**
-         * Issue a goodbye activity in response to cancellation in a detached scope. This means that
-         * the cancellation issued on the parent workflow will NOT trigger cancelation on child
-         * workflows
+         * Any call to an activity or a child workflow after the workflow is cancelled is going to
+         * fail immediately with the CancellationException. the DetachedCancellationScope doesn't
+         * inherit its cancellation status from the enclosing scope. Thus it allows running a
+         * cleanup activity even if the workflow cancellation was requested.
          */
         Workflow.newDetachedCancellationScope(() -> activities.sayGoodbye(name));
       }
-      return "Greeting took too long. So we said goodbye.";
+      return "Cancellation issued.. Goodbye.";
     }
   }
 
-  static class GreetingActivitiesImpl implements HelloCancellation.GreetingActivities {
+  static class GreetingActivitiesImpl implements GreetingActivities {
 
-    private List<String> invocations = new ArrayList<>();
+    private final List<String> invocations = new ArrayList<>();
 
     @Override
     public String composeGreeting(String greeting, String name) throws Exception {
@@ -130,13 +134,13 @@ public class HelloCancellation {
 
     client.start("World");
 
-    // issue cancellation request. This will trigger a CancellationException on the workflow which
-    // can be ignored since it's expected
+    // issue cancellation request. This will trigger a CancellationException on the workflow.
     client.cancel();
 
     try {
       client.getResult(String.class);
     } catch (CancellationException ignored) {
+      System.out.println("workflow cancelled");
     }
 
     System.out.println(activities.getInvocations());
