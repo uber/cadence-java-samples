@@ -68,7 +68,7 @@ public class HelloCancellation {
     @Override
     public String getGreeting(String name) throws Exception {
       try {
-        Workflow.sleep(Duration.ofSeconds(10));
+        Workflow.sleep(Duration.ofDays(10));
         return activities.composeGreeting("Hello", name);
         // This exception is thrown when a cancellation is requested on the current workflow
       } catch (CancellationException e) {
@@ -138,7 +138,8 @@ public class HelloCancellation {
     try {
       client.getResult(String.class);
     } catch (CancellationException ignored) {
-      System.out.println("workflow cancelled. Cancellation exception thrown: " + ignored.getLocalizedMessage());
+      System.out.println(
+          "workflow cancelled. Cancellation exception thrown: " + ignored.getLocalizedMessage());
     }
 
     System.out.println(activities.getInvocations());
