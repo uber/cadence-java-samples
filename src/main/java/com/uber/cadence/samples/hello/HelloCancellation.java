@@ -70,10 +70,8 @@ public class HelloCancellation {
       try {
         Workflow.sleep(Duration.ofSeconds(10));
         return activities.composeGreeting("Hello", name);
-      } catch (
-          CancellationException
-              e) { // This exception is thrown when a cancellation is requested on the current
-        // workflow
+        // This exception is thrown when a cancellation is requested on the current workflow
+      } catch (CancellationException e) {
         /**
          * Any call to an activity or a child workflow after the workflow is cancelled is going to
          * fail immediately with the CancellationException. the DetachedCancellationScope doesn't
@@ -81,8 +79,8 @@ public class HelloCancellation {
          * cleanup activity even if the workflow cancellation was requested.
          */
         Workflow.newDetachedCancellationScope(() -> activities.sayGoodbye(name));
+        throw e;
       }
-      return "Cancellation issued.. Goodbye.";
     }
   }
 
@@ -140,7 +138,7 @@ public class HelloCancellation {
     try {
       client.getResult(String.class);
     } catch (CancellationException ignored) {
-      System.out.println("workflow cancelled");
+      System.out.println("workflow cancelled. Cancellation exception thrown: " + ignored.getLocalizedMessage());
     }
 
     System.out.println(activities.getInvocations());
