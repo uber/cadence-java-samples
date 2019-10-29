@@ -75,8 +75,7 @@ public class HelloSearchAttributes {
 
       // update some of the search attributes
       Map<String, Object> upsertedMap = new HashMap<>();
-      upsertedMap.put("CustomIntField", 2);
-      upsertedMap.put("CustomKeywordField", "new_key");
+      upsertedMap.put("CustomKeywordField", name);
       Workflow.upsertSearchAttributes(upsertedMap);
 
       currentSearchAttributes = Workflow.getWorkflowInfo().getSearchAttributes();
@@ -153,7 +152,7 @@ public class HelloSearchAttributes {
         workflowClient.newWorkflowStub(
             HelloSearchAttributes.GreetingWorkflow.class, workflowOptions);
     // Execute a workflow waiting for it to complete.
-    String greeting = workflow.getGreeting("SearchAttributes");
+    String greeting = workflow.getGreeting("World");
 
     // Bellow shows how to read search attributes using DescribeWorkflowExecution API
     // You can do similar things using ListWorkflowExecutions
@@ -183,7 +182,7 @@ public class HelloSearchAttributes {
     Map<String, Object> searchAttributes = new HashMap<>();
     searchAttributes.put(
         "CustomKeywordField",
-        "keys"); // each field can also be array such as: String[] keys = {"k1", "k2"};
+        "old world"); // each field can also be array such as: String[] keys = {"k1", "k2"};
     searchAttributes.put("CustomIntField", 1);
     searchAttributes.put("CustomDoubleField", 0.1);
     searchAttributes.put("CustomBoolField", true);
