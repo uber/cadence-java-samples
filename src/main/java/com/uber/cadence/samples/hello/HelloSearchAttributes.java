@@ -69,6 +69,7 @@ public class HelloSearchAttributes {
     @Override
     public String getGreeting(String name) {
       SearchAttributes currentSearchAttributes = Workflow.getWorkflowInfo().getSearchAttributes();
+      // Use System.out just for demo, please use Workflow.getLogger in production.
       System.out.println("Search Attributes on start: ");
       printSearchAttributes(currentSearchAttributes);
 
