@@ -26,14 +26,12 @@ import com.uber.cadence.WorkflowExecution;
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.client.WorkflowOptions;
-import com.uber.cadence.converter.DataConverter;
-import com.uber.cadence.converter.JsonDataConverter;
 import com.uber.cadence.serviceclient.IWorkflowService;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
-import java.nio.ByteBuffer;
+import com.uber.cadence.workflow.WorkflowUtils;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -70,8 +68,53 @@ public class HelloSearchAttributes {
 
     @Override
     public String getGreeting(String name) {
+      SearchAttributes currentSearchAttributes = Workflow.getWorkflowInfo().getSearchAttributes();
+      // Use System.out just for demo, please use Workflow.getLogger in production.
+      System.out.println("Search Attributes on start: ");
+      printSearchAttributes(currentSearchAttributes);
+
+      // update some of the search attributes
+      Map<String, Object> upsertedMap = new HashMap<>();
+      upsertedMap.put("CustomKeywordField", name);
+      Workflow.upsertSearchAttributes(upsertedMap);
+
+      currentSearchAttributes = Workflow.getWorkflowInfo().getSearchAttributes();
+      System.out.println("Search Attributes after upsert: ");
+      printSearchAttributes(currentSearchAttributes);
+
       // This is a blocking call that returns only after the activity has completed.
       return activities.composeGreeting("Hello", name);
+    }
+
+    private void printSearchAttributes(SearchAttributes searchAttributes) {
+      if (searchAttributes == null) {
+        return;
+      }
+      searchAttributes
+          .getIndexedFields()
+          .forEach(
+              (k, v) -> {
+                System.out.printf("%s: %s\n", k, getValueForKey(k, searchAttributes));
+              });
+    }
+
+    private String getValueForKey(String key, SearchAttributes searchAttributes) {
+      switch (key) {
+        case "CustomKeywordField":
+        case "CustomDatetimeField":
+        case "CustomStringField":
+          return WorkflowUtils.getValueFromSearchAttributes(searchAttributes, key, String.class);
+        case "CustomIntField":
+          return WorkflowUtils.getValueFromSearchAttributes(searchAttributes, key, Integer.class)
+              .toString();
+        case "CustomDoubleField":
+          return WorkflowUtils.getValueFromSearchAttributes(searchAttributes, key, Double.class)
+              .toString();
+        case "CustomBoolField":
+          return WorkflowUtils.getValueFromSearchAttributes(searchAttributes, key, Boolean.class)
+              .toString();
+      }
+      return "Unknown key";
     }
   }
 
@@ -109,8 +152,10 @@ public class HelloSearchAttributes {
         workflowClient.newWorkflowStub(
             HelloSearchAttributes.GreetingWorkflow.class, workflowOptions);
     // Execute a workflow waiting for it to complete.
-    String greeting = workflow.getGreeting("SearchAttributes");
+    String greeting = workflow.getGreeting("World");
 
+    // Bellow shows how to read search attributes using DescribeWorkflowExecution API
+    // You can do similar things using ListWorkflowExecutions
     IWorkflowService cadenceService = new WorkflowServiceTChannel();
     WorkflowExecution execution = new WorkflowExecution();
     execution.setWorkflowId(workflowID);
@@ -121,7 +166,9 @@ public class HelloSearchAttributes {
     try {
       DescribeWorkflowExecutionResponse resp = cadenceService.DescribeWorkflowExecution(request);
       SearchAttributes searchAttributes = resp.workflowExecutionInfo.getSearchAttributes();
-      String keyword = getKeywordFromSearchAttribute(searchAttributes);
+      String keyword =
+          WorkflowUtils.getValueFromSearchAttributes(
+              searchAttributes, "CustomKeywordField", String.class);
       System.out.printf("In workflow we get CustomKeywordField is: %s\n", keyword);
     } catch (Exception e) {
       System.out.println(e);
@@ -135,7 +182,7 @@ public class HelloSearchAttributes {
     Map<String, Object> searchAttributes = new HashMap<>();
     searchAttributes.put(
         "CustomKeywordField",
-        "keys"); // each field can also be array such as: String[] keys = {"k1", "k2"};
+        "old world"); // each field can also be array such as: String[] keys = {"k1", "k2"};
     searchAttributes.put("CustomIntField", 1);
     searchAttributes.put("CustomDoubleField", 0.1);
     searchAttributes.put("CustomBoolField", true);
@@ -152,15 +199,5 @@ public class HelloSearchAttributes {
     LocalDateTime currentDateTime = LocalDateTime.now();
     DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
     return currentDateTime.format(formatter);
-  }
-
-  // example for extract value from search attributes
-  private static String getKeywordFromSearchAttribute(SearchAttributes searchAttributes) {
-    Map<String, ByteBuffer> map = searchAttributes.getIndexedFields();
-    ByteBuffer byteBuffer = map.get("CustomKeywordField");
-    DataConverter dataConverter = JsonDataConverter.getInstance();
-    final byte[] valueBytes = new byte[byteBuffer.limit() - byteBuffer.position()];
-    byteBuffer.get(valueBytes, 0, valueBytes.length);
-    return dataConverter.fromData(valueBytes, String.class, String.class);
   }
 }

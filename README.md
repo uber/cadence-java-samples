@@ -96,6 +96,7 @@ To run the hello world samples:
     ./gradlew -q execute -PmainClass=com.uber.cadence.samples.hello.HelloPeriodic
     ./gradlew -q execute -PmainClass=com.uber.cadence.samples.hello.HelloQuery
     ./gradlew -q execute -PmainClass=com.uber.cadence.samples.hello.HelloSignal
+    ./gradlew -q execute -PmainClass=com.uber.cadence.samples.hello.HelloSearchAttributes
 
 ### File Processing
 
