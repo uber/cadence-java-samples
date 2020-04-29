@@ -19,6 +19,7 @@ package com.uber.cadence.samples.hello;
 
 import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 
+import com.uber.cadence.WorkflowExecution;
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.worker.Worker;
 import com.uber.cadence.workflow.Async;
@@ -57,6 +58,20 @@ public class HelloChild {
       Promise<String> greeting = Async.function(child::composeGreeting, "Hello", name);
       // Do something else here.
       return greeting.get(); // blocks waiting for the child to complete.
+    }
+
+    // This example shows how parent workflow return right after starting a child workflow,
+    // and let the child run itself.
+    private String demoAsyncChildRun(String name) {
+      GreetingChild child = Workflow.newChildWorkflowStub(GreetingChild.class);
+      // non blocking call that initiated child workflow
+      Async.function(child::composeGreeting, "Hello", name);
+      // instead of using greeting.get() to block till child complete,
+      // sometimes we just want to return parent immediately and keep child running
+      Promise<WorkflowExecution> childPromise = Workflow.getWorkflowExecution(child);
+      childPromise.get(); // block until child started,
+      // otherwise child may not start because parent complete first.
+      return "let child run, parent just return";
     }
   }
 
