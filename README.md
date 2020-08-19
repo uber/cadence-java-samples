@@ -20,6 +20,8 @@ These samples demonstrate various capabilities of Java Cadence client and server
   * **HelloQuery**: a query
   * **HelloSignal**: sending and handling a signal
   * **HelloPeriodic**: a sample workflow that executes an activity periodically forever
+  * **HelloSearchAttributes**: how to use search attributes
+  * **HelloCron**: a cron workflow 
 
 * **FileProcessing** demonstrates task routing features. The sample workflow downloads a file, processes it, and uploads
     the result to a destination. The first activity can be picked up by any worker. However, the second and third activities
@@ -97,6 +99,7 @@ To run the hello world samples:
     ./gradlew -q execute -PmainClass=com.uber.cadence.samples.hello.HelloQuery
     ./gradlew -q execute -PmainClass=com.uber.cadence.samples.hello.HelloSignal
     ./gradlew -q execute -PmainClass=com.uber.cadence.samples.hello.HelloSearchAttributes
+    ./gradlew -q execute -PmainClass=com.uber.cadence.samples.hello.HelloCron
 
 ### File Processing
 
