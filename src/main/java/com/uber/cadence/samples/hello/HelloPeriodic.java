@@ -35,8 +35,11 @@ import java.time.Duration;
 import java.util.Optional;
 
 /**
- * Demonstrates a "cron" workflow that executes activity periodically. Requires a local instance of
- * Cadence server to be running.
+ * Demonstrates how to use sleep and ContinueAsNew to executes activity periodically. In most cases,
+ * use @see com.uber.cadence.samples.hello.HelloCron cadence built-in support of cron workflow to
+ * save efforts.
+ *
+ * <p>Requires a local instance of Cadence server to be running.
  */
 public class HelloPeriodic {
 
