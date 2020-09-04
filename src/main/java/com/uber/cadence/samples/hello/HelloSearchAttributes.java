@@ -32,7 +32,7 @@ import com.uber.cadence.worker.Worker;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
 import com.uber.cadence.workflow.WorkflowUtils;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -196,8 +196,8 @@ public class HelloSearchAttributes {
   // CustomDatetimeField takes string like "2018-07-14T17:45:55.9483536" or
   // "2019-01-01T00:00:00-08:00" as value
   private static String generateDateTimeFieldValue() {
-    LocalDateTime currentDateTime = LocalDateTime.now();
-    DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+    ZonedDateTime currentDateTime = ZonedDateTime.now();
+    DateTimeFormatter formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
     return currentDateTime.format(formatter);
   }
 }
