@@ -74,6 +74,24 @@ public class HelloWorkerSetup {
 
   public static void main(String[] args) {
     // Start a worker that hosts both workflow and activity implementations.
+
+    /**
+     * If you see error "Not enough threads to execute workflows" exception it indicates that there are
+     * not enough threads to execute currently running workflow tasks.
+     *
+     * For example, if each workflow uses two threads(using Asycn function) and maxConcurrentWorklfowExecutionSize is 100,
+     * and assuming the factory only creates one worker. Then maxWorkflowThreads should be at least 200.
+     * With such setup 0 workflows will be cached as all the threads would be consumed by the currently executing workflow tasks.
+     * So in general it is better to keep maxWorkflowThreads much higher than maxConcurrentWorklfowExecutionSize to support caching.
+     *
+     * maxWorkflowThreads defines how many threads all currently executing and cached workflows can use.
+     * It's a Factory level option, meaning that the thread pool is shared across all workers created by the factory.
+     *
+     * maxConcurrentWorklfowExecutionSize defines how many workflow tasks can execute in parallel.
+     * It's a worker level option.
+     *
+     *
+     */
     Worker.Factory factory = new Worker.Factory(DOMAIN,
             new Worker.FactoryOptions.Builder()
                     .setMaxWorkflowThreadCount(1000)
