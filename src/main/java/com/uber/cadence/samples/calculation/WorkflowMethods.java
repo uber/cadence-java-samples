@@ -17,7 +17,7 @@
 
 package com.uber.cadence.samples.calculation;
 
-import static com.uber.cadence.samples.calculation.Main.DEFAULT_TASK_LIST;
+import static com.uber.cadence.samples.calculation.WorkflowWorker.DEFAULT_TASK_LIST;
 
 import com.uber.cadence.workflow.QueryMethod;
 import com.uber.cadence.workflow.SignalMethod;

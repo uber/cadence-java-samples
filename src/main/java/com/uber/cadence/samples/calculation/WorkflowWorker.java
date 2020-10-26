@@ -19,13 +19,9 @@ package com.uber.cadence.samples.calculation;
 
 import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 
-import com.uber.cadence.WorkflowIdReusePolicy;
-import com.uber.cadence.client.WorkflowClient;
-import com.uber.cadence.client.WorkflowOptions;
 import com.uber.cadence.worker.Worker;
-import java.time.Duration;
 
-public class Main {
+public class WorkflowWorker {
 
   static final String DEFAULT_TASK_LIST = "calculation-default-tasklist";
 
@@ -41,17 +37,5 @@ public class Main {
     // Start all workers created by this factory.
     factory.start();
     System.out.println("Worker started for task list: " + DEFAULT_TASK_LIST);
-
-    final WorkflowClient workflowClient = WorkflowClient.newInstance(DOMAIN);
-
-    WorkflowOptions workflowOptions =
-        new WorkflowOptions.Builder()
-            .setTaskList(DEFAULT_TASK_LIST)
-            .setExecutionStartToCloseTimeout(Duration.ofSeconds(30))
-            .setWorkflowId("test-workflow-id")
-            .setWorkflowIdReusePolicy(WorkflowIdReusePolicy.AllowDuplicate)
-            .build();
-    WorkflowMethods calculation = workflowClient.newWorkflowStub(WorkflowMethods.class, workflowOptions);
-    WorkflowClient.start(calculation::calculate, 4L, 5L, 6L);
   }
 }
