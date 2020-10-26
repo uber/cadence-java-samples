@@ -26,15 +26,13 @@ import com.uber.cadence.client.WorkflowOptions;
 
 public class WorkflowStarter {
 
-  static final String DEFAULT_TASK_LIST = "calculation-default-tasklist";
-
   @SuppressWarnings("CatchAndPrintStackTrace")
   public static void main(String[] args) {
     final WorkflowClient workflowClient = WorkflowClient.newInstance(DOMAIN);
 
     WorkflowOptions workflowOptions =
         new WorkflowOptions.Builder()
-            .setTaskList(DEFAULT_TASK_LIST)
+            .setTaskList(WorkflowWorker.DEFAULT_TASK_LIST)
             .setWorkflowId("test-workflow-id")
             .setWorkflowIdReusePolicy(WorkflowIdReusePolicy.AllowDuplicate)
             .build();
