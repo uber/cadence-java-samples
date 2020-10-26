@@ -41,15 +41,13 @@ public class WorkflowMethodsImpl implements WorkflowMethods {
   public long calculate(long a, long b, long c) {
     LOGGER.info("workflow start...");
 
-    long result = 0;
-
     // Async.invoke takes method reference and activity parameters and returns Promise.
     Promise<Long> ab = Async.function(activities::multiple, a, b);
     Promise<Long> ac = Async.function(activities::multiple, a, c);
     Promise<Long> bc = Async.function(activities::multiple, b, c);
 
     // Promise#get blocks until result is ready.
-    this.abPlusAcPlusBc = result = ab.get() + ac.get() + bc.get();
+    this.abPlusAcPlusBc = ab.get() + ac.get() + bc.get();
 
     // waiting 30s for a human input to decide the factor N for g(n), based on a*b+a*c+b*c
     // the waiting timer is durable, independent of workers' liveness
@@ -72,8 +70,7 @@ public class WorkflowMethodsImpl implements WorkflowMethods {
       this.currentG += activities.multiple(fi, fi);
     }
 
-    result += this.currentG;
-    return result;
+    return this.abPlusAcPlusBc + this.currentG;
   }
 
   @Override
