@@ -18,7 +18,9 @@
 package com.uber.cadence.samples.calculation;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.uber.cadence.client.WorkflowClient;
@@ -68,5 +70,8 @@ public class CalculationWorkflowTest {
 
     // 20+24+30 + 1 = 75
     assertEquals(75L, result);
+    verify(activities).multiple(eq(4L), eq(5L));
+    verify(activities).multiple(eq(4L), eq(6L));
+    verify(activities).multiple(eq(5L), eq(6L));
   }
 }
