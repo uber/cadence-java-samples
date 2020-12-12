@@ -88,7 +88,8 @@ public class HelloLocalActivity {
     // Start a workflow execution. Usually this is done from another program.
     WorkflowClient workflowClient = WorkflowClient.newInstance(DOMAIN);
     long startTimeMillis = System.currentTimeMillis();
-    for (int i = 0; i < 100; i++) {
+    int times = 1000;
+    for (int i = 0; i < times; i++) {
       // Get a workflow stub using the same task list the worker uses.
       GreetingWorkflow workflow = workflowClient.newWorkflowStub(GreetingWorkflow.class);
       // Execute a workflow waiting for it to complete.
@@ -97,13 +98,18 @@ public class HelloLocalActivity {
     }
     long finishTimeMillis = System.currentTimeMillis();
     long elapsedMillis = finishTimeMillis - startTimeMillis;
+    long avg = elapsedMillis / times;
     System.out.println(
-        "startTime:"
+        "times:"
+            + times
+            + "startTime:"
             + startTimeMillis
             + ", finishTime:"
             + finishTimeMillis
             + ", elapsedMillis:"
-            + elapsedMillis);
+            + elapsedMillis
+            + ", avg:"
+            + avg);
     System.exit(0);
   }
 }
