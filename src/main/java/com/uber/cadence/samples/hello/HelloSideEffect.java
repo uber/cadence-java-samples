@@ -7,6 +7,7 @@ import com.uber.cadence.worker.Worker;
 import com.uber.cadence.workflow.QueryMethod;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
+import java.util.UUID;
 
 /**
  * Hello SideEffect Cadence workflow that sets a SideEffect. The set value can be queried Requires a
@@ -19,7 +20,7 @@ public class HelloSideEffect {
   /** Workflow interface has to have at least one method annotated with @WorkflowMethod. */
   public interface SideEffectWorkflow {
     @WorkflowMethod(executionStartToCloseTimeoutSeconds = 10, taskList = TASK_LIST)
-    void set(String value);
+    void start();
 
     /** @return set value */
     @QueryMethod
@@ -31,18 +32,13 @@ public class HelloSideEffect {
     private String value = "";
 
     @Override
-    public void set(String value) {
-      Workflow.sideEffect(
-          String.class,
-          () -> {
-            return value;
-          });
-      Workflow.sideEffect(
-          Boolean.class,
-          () -> {
-            return true;
-          });
-      this.value = value;
+    public void start() {
+      this.value =
+          Workflow.sideEffect(
+              String.class,
+              () -> {
+                return UUID.randomUUID().toString();
+              });
     }
 
     @Override
@@ -65,7 +61,7 @@ public class HelloSideEffect {
     // Get a workflow stub using the same task list the worker uses.
     SideEffectWorkflow workflow = workflowClient.newWorkflowStub(SideEffectWorkflow.class);
     // Execute a workflow waiting for it to complete.
-    workflow.set("test");
+    workflow.start();
     // Query and print the set value
     System.out.println(workflow.get());
     System.exit(0);
