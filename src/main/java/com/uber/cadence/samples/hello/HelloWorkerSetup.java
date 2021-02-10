@@ -17,6 +17,8 @@
 
 package com.uber.cadence.samples.hello;
 
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
+
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.worker.Worker;
@@ -24,11 +26,9 @@ import com.uber.cadence.worker.WorkerOptions;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
 
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
-
 /**
- * Hello World Cadence workflow that executes a single activity with full example of how to customize
- * a worker
+ * Hello World Cadence workflow that executes a single activity with full example of how to
+ * customize a worker
  */
 public class HelloWorkerSetup {
 
@@ -76,33 +76,38 @@ public class HelloWorkerSetup {
     // Start a worker that hosts both workflow and activity implementations.
 
     /**
-     * If you see error "Not enough threads to execute workflows" exception it indicates that there are
-     * not enough threads to execute currently running workflow tasks.
+     * If you see error "Not enough threads to execute workflows" exception it indicates that there
+     * are not enough threads to execute currently running workflow tasks.
      *
-     * For example, if each workflow uses two threads(using Asycn function) and maxConcurrentWorklfowExecutionSize is 100,
-     * and assuming the factory only creates one worker. Then maxWorkflowThreads should be at least 200.
-     * With such setup 0 workflows will be cached as all the threads would be consumed by the currently executing workflow tasks.
-     * So in general it is better to keep maxWorkflowThreads much higher than maxConcurrentWorklfowExecutionSize to support caching.
+     * <p>For example, if each workflow uses two threads(using Asycn function) and
+     * maxConcurrentWorklfowExecutionSize is 100, and assuming the factory only creates one worker.
+     * Then maxWorkflowThreads should be at least 200. With such setup 0 workflows will be cached as
+     * all the threads would be consumed by the currently executing workflow tasks. So in general it
+     * is better to keep maxWorkflowThreads much higher than maxConcurrentWorklfowExecutionSize to
+     * support caching.
      *
-     * maxWorkflowThreads defines how many threads all currently executing and cached workflows can use.
-     * It's a Factory level option, meaning that the thread pool is shared across all workers created by the factory.
+     * <p>maxWorkflowThreads defines how many threads all currently executing and cached workflows
+     * can use. It's a Factory level option, meaning that the thread pool is shared across all
+     * workers created by the factory.
      *
-     * maxConcurrentWorklfowExecutionSize defines how many workflow tasks can execute in parallel.
-     * It's a worker level option.
-     *
-     *
+     * <p>maxConcurrentWorklfowExecutionSize defines how many workflow tasks can execute in
+     * parallel. It's a worker level option.
      */
-    Worker.Factory factory = new Worker.Factory(DOMAIN,
+    Worker.Factory factory =
+        new Worker.Factory(
+            DOMAIN,
             new Worker.FactoryOptions.Builder()
-                    .setMaxWorkflowThreadCount(1000)
-                    .setCacheMaximumSize(100)
-                    .setDisableStickyExecution(false)
-                    .build());
-    Worker worker = factory.newWorker(TASK_LIST,
+                .setMaxWorkflowThreadCount(1000)
+                .setCacheMaximumSize(100)
+                .setDisableStickyExecution(false)
+                .build());
+    Worker worker =
+        factory.newWorker(
+            TASK_LIST,
             new WorkerOptions.Builder()
-                    .setMaxConcurrentActivityExecutionSize(100)
-                    .setMaxConcurrentWorkflowExecutionSize(100)
-                    .build());
+                .setMaxConcurrentActivityExecutionSize(100)
+                .setMaxConcurrentWorkflowExecutionSize(100)
+                .build());
     // Workflows are stateful. So you need a type to create instances.
     worker.registerWorkflowImplementationTypes(GreetingWorkflowImpl.class);
     // Activities are stateless and thread safe. So a shared instance is used.
