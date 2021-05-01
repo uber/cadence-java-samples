@@ -19,8 +19,11 @@ package com.uber.cadence.samples.hello;
 
 import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 
+import com.google.common.base.Strings;
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
+import com.uber.cadence.serviceclient.IWorkflowService;
+import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
@@ -73,7 +76,18 @@ public class HelloActivity {
 
   public static void main(String[] args) {
     // Start a worker that hosts both workflow and activity implementations.
-    Worker.Factory factory = new Worker.Factory(DOMAIN);
+    final WorkflowServiceTChannel.ClientOptions.Builder builder =
+            new WorkflowServiceTChannel.ClientOptions.Builder();
+    // Use 5 seconds as RPC timeout
+    builder.setRpcTimeout(5 * 1000);
+    IWorkflowService wfService =
+            new WorkflowServiceTChannel(
+                    Strings.isNullOrEmpty(System.getenv("CADENCE_SEEDS"))
+                            ? "127.0.0.1"
+                            : System.getenv("CADENCE_SEEDS"),
+                    7933,
+                    builder.build());
+    Worker.Factory factory = new Worker.Factory(wfService, DOMAIN);
     Worker worker = factory.newWorker(TASK_LIST);
     // Workflows are stateful. So you need a type to create instances.
     worker.registerWorkflowImplementationTypes(GreetingWorkflowImpl.class);
