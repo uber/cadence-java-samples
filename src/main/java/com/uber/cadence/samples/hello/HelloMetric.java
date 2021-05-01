@@ -44,8 +44,9 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 
 /**
- * Hello World Cadence workflow that executes a single activity. Requires a local instance the
- * Cadence service to be running.
+ * Hello World Cadence workflow that executes a single activity with emitting metrics to Prometheus.
+ * Check http://localhost:9098/ to see the reported metrics for scaping. 
+ * Requires a local instance the Cadence service to be running.
  */
 public class HelloMetric {
 
