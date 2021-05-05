@@ -60,7 +60,10 @@ public class HelloLocalActivity {
     @Override
     public String getGreeting(String name) {
       // This is a blocking call that returns only after the activity has completed.
-      return activities.composeGreeting("Hello", name);
+      activities.composeGreeting("Hello noop activity1", name);
+      activities.composeGreeting("Hello noop activity2", name);
+      activities.composeGreeting("Hello noop activity3", name);
+      return "succ";
     }
   }
 
@@ -84,11 +87,29 @@ public class HelloLocalActivity {
 
     // Start a workflow execution. Usually this is done from another program.
     WorkflowClient workflowClient = WorkflowClient.newInstance(DOMAIN);
-    // Get a workflow stub using the same task list the worker uses.
-    GreetingWorkflow workflow = workflowClient.newWorkflowStub(GreetingWorkflow.class);
-    // Execute a workflow waiting for it to complete.
-    String greeting = workflow.getGreeting("World");
-    System.out.println(greeting);
+    long startTimeMillis = System.currentTimeMillis();
+    int times = 1000;
+    for (int i = 0; i < times; i++) {
+      // Get a workflow stub using the same task list the worker uses.
+      GreetingWorkflow workflow = workflowClient.newWorkflowStub(GreetingWorkflow.class);
+      // Execute a workflow waiting for it to complete.
+      workflow.getGreeting("World");
+      // System.out.println(greeting);
+    }
+    long finishTimeMillis = System.currentTimeMillis();
+    long elapsedMillis = finishTimeMillis - startTimeMillis;
+    long avg = elapsedMillis / times;
+    System.out.println(
+        "times:"
+            + times
+            + "startTime:"
+            + startTimeMillis
+            + ", finishTime:"
+            + finishTimeMillis
+            + ", elapsedMillis:"
+            + elapsedMillis
+            + ", avg:"
+            + avg);
     System.exit(0);
   }
 }
