@@ -21,6 +21,7 @@ import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 
 import com.uber.cadence.DomainAlreadyExistsError;
 import com.uber.cadence.RegisterDomainRequest;
+import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.IWorkflowService;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import java.io.IOException;
@@ -34,7 +35,7 @@ import org.apache.thrift.TException;
 public class RegisterDomain {
 
   public static void main(String[] args) throws TException, IOException {
-    IWorkflowService cadenceService = new WorkflowServiceTChannel();
+    IWorkflowService cadenceService = new WorkflowServiceTChannel(ClientOptions.defaultInstance());
     RegisterDomainRequest request = new RegisterDomainRequest();
     request.setDescription("Java Samples");
     request.setEmitMetric(false);

@@ -17,11 +17,10 @@
 
 package com.uber.cadence.samples.common;
 
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
-
 import com.uber.cadence.WorkflowExecution;
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.client.WorkflowStub;
+import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.IWorkflowService;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import java.util.Optional;
@@ -42,7 +41,7 @@ public class QueryWorkflowExecution {
               + " <queryType> <workflowId> [<runId>]");
       System.exit(1);
     }
-    IWorkflowService cadenceService = new WorkflowServiceTChannel();
+    IWorkflowService cadenceService = new WorkflowServiceTChannel(ClientOptions.defaultInstance());
 
     String queryType = args[0];
 
@@ -53,7 +52,7 @@ public class QueryWorkflowExecution {
       String runId = args[1];
       workflowExecution.setRunId(runId);
     }
-    WorkflowClient client = WorkflowClient.newInstance(cadenceService, DOMAIN);
+    WorkflowClient client = WorkflowClient.newInstance(cadenceService);
     WorkflowStub workflow = client.newUntypedWorkflowStub(workflowExecution, Optional.empty());
     String result = workflow.query(queryType, String.class);
 

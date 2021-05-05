@@ -17,11 +17,13 @@
 
 package com.uber.cadence.samples.hello;
 
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
-
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
+import com.uber.cadence.serviceclient.ClientOptions;
+import com.uber.cadence.serviceclient.IWorkflowService;
+import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
+import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.worker.WorkerOptions;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
@@ -91,12 +93,14 @@ public class HelloMetric {
   }
 
   public static void main(String[] args) throws IOException {
+    final ClientOptions clientOptions =
+        ClientOptions.newBuilder().setMetricsScope(createMetricScope()).build();
+    //    final ClientOptions clientOptions = ClientOptions.newBuilder().build();
+    IWorkflowService service = new WorkflowServiceTChannel(clientOptions);
+    final WorkflowClient workflowClient = WorkflowClient.newInstance(service);
     // Start a worker that hosts both workflow and activity implementations.
-    Worker.Factory factory = new Worker.Factory(DOMAIN);
-    PrometheusReporter.builder().registry(CollectorRegistry.defaultRegistry).build();
-    final WorkerOptions workerOptions =
-        new WorkerOptions.Builder().setMetricsScope(createMetricScope()).build();
-    Worker worker = factory.newWorker(TASK_LIST, workerOptions);
+    WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
+    Worker worker = factory.newWorker(TASK_LIST, WorkerOptions.defaultInstance());
     // Workflows are stateful. So you need a type to create instances.
     worker.registerWorkflowImplementationTypes(GreetingWorkflowImpl.class);
     // Activities are stateless and thread safe. So a shared instance is used.
@@ -104,8 +108,6 @@ public class HelloMetric {
     // Start listening to the workflow and activity task lists.
     factory.start();
 
-    // Start a workflow execution. Usually this is done from another program.
-    WorkflowClient workflowClient = WorkflowClient.newInstance(DOMAIN);
     // Get a workflow stub using the same task list the worker uses.
     GreetingWorkflow workflow = workflowClient.newWorkflowStub(GreetingWorkflow.class);
     // Execute a workflow waiting for it to complete.
@@ -117,7 +119,9 @@ public class HelloMetric {
     CollectorRegistry registry = CollectorRegistry.defaultRegistry;
     HTTPServer httpServer = new HTTPServer(new InetSocketAddress(9098), registry);
     PrometheusReporter reporter = PrometheusReporter.builder().registry(registry).build();
-    Scope scope = new RootScopeBuilder().reporter(reporter).reportEvery(Duration.ofSeconds(1));
+    // Make sure to set separator to "_" for Prometheus. Default is "." and doesn't work.
+    Scope scope =
+        new RootScopeBuilder().separator("_").reporter(reporter).reportEvery(Duration.ofSeconds(1));
     return new PrometheusScope(scope);
   }
 }
