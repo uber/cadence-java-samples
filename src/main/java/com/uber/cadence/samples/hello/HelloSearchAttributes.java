@@ -17,6 +17,8 @@
 
 package com.uber.cadence.samples.hello;
 
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
+
 import com.uber.cadence.DescribeWorkflowExecutionRequest;
 import com.uber.cadence.DescribeWorkflowExecutionResponse;
 import com.uber.cadence.SearchAttributes;
@@ -31,22 +33,17 @@ import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
 import com.uber.cadence.workflow.WorkflowUtils;
-
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
-
 public class HelloSearchAttributes {
 
   static final String TASK_LIST = "HelloSearchAttributes";
 
-  /**
-   * Workflow interface has to have at least one method annotated with @WorkflowMethod.
-   */
+  /** Workflow interface has to have at least one method annotated with @WorkflowMethod. */
   public interface GreetingWorkflow {
     /** @return greeting string */
     @WorkflowMethod(executionStartToCloseTimeoutSeconds = 10, taskList = TASK_LIST)
@@ -130,7 +127,8 @@ public class HelloSearchAttributes {
   }
 
   public static void main(String[] args) {
-    final WorkflowServiceTChannel cadenceService = new WorkflowServiceTChannel(ClientOptions.defaultInstance());
+    final WorkflowServiceTChannel cadenceService =
+        new WorkflowServiceTChannel(ClientOptions.defaultInstance());
     // Get a new client
     // NOTE: to set a different options, you can do like this:
     // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();

@@ -26,7 +26,6 @@ import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.workflow.QueryMethod;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
-
 import java.time.Duration;
 
 /** Demonstrates query capability. Requires a local instance of Cadence server to be running. */
@@ -68,7 +67,8 @@ public class HelloQuery {
     // Get a new client
     // NOTE: to set a different options, you can do like this:
     // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
-    WorkflowClient workflowClient = WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
+    WorkflowClient workflowClient =
+        WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
     // Get worker to poll the task list.
     WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
     Worker worker = factory.newWorker(TASK_LIST);
@@ -78,9 +78,9 @@ public class HelloQuery {
     // Start a workflow execution. Usually this is done from another program.
     // Get a workflow stub using the same task list the worker uses.
     WorkflowOptions workflowOptions =
-            new WorkflowOptions.Builder()
-                    .setTaskList(TASK_LIST)
-                    .setExecutionStartToCloseTimeout(Duration.ofSeconds(30))
+        new WorkflowOptions.Builder()
+            .setTaskList(TASK_LIST)
+            .setExecutionStartToCloseTimeout(Duration.ofSeconds(30))
             .build();
     GreetingWorkflow workflow =
         workflowClient.newWorkflowStub(GreetingWorkflow.class, workflowOptions);

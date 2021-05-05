@@ -78,7 +78,8 @@ public class HelloWorkerSetup {
     // Get a new client
     // NOTE: to set a different options, you can do like this:
     // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
-    WorkflowClient workflowClient = WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
+    WorkflowClient workflowClient =
+        WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
 
     /**
      * If you see error "Not enough threads to execute workflows" exception it indicates that there
@@ -99,19 +100,19 @@ public class HelloWorkerSetup {
      * parallel. It's a worker level option.
      */
     WorkerFactory factory =
-            WorkerFactory.newInstance(
-                    workflowClient,
-                    WorkerFactoryOptions.newBuilder()
-                            .setMaxWorkflowThreadCount(1000)
-                            .setStickyCacheSize(100)
-                            .setDisableStickyExecution(false)
-                            .build());
+        WorkerFactory.newInstance(
+            workflowClient,
+            WorkerFactoryOptions.newBuilder()
+                .setMaxWorkflowThreadCount(1000)
+                .setStickyCacheSize(100)
+                .setDisableStickyExecution(false)
+                .build());
     Worker worker =
-            factory.newWorker(
-                    TASK_LIST,
-                    WorkerOptions.newBuilder()
-                            .setMaxConcurrentActivityExecutionSize(100)
-                            .setMaxConcurrentWorkflowExecutionSize(100)
+        factory.newWorker(
+            TASK_LIST,
+            WorkerOptions.newBuilder()
+                .setMaxConcurrentActivityExecutionSize(100)
+                .setMaxConcurrentWorkflowExecutionSize(100)
                 .build());
     // Workflows are stateful. So you need a type to create instances.
     worker.registerWorkflowImplementationTypes(GreetingWorkflowImpl.class);

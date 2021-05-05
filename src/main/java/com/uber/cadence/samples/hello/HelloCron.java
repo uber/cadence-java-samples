@@ -17,6 +17,8 @@
 
 package com.uber.cadence.samples.hello;
 
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
+
 import com.uber.cadence.TerminateWorkflowExecutionRequest;
 import com.uber.cadence.WorkflowExecution;
 import com.uber.cadence.WorkflowIdReusePolicy;
@@ -30,10 +32,7 @@ import com.uber.cadence.worker.Worker;
 import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
-
 import java.time.Duration;
-
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 
 /**
  * Demonstrates a cron workflow that executes activity periodically. Requires a local instance of
@@ -85,7 +84,8 @@ public class HelloCron {
   }
 
   public static void main(String[] args) throws InterruptedException {
-    final WorkflowServiceTChannel cadenceService = new WorkflowServiceTChannel(ClientOptions.defaultInstance());
+    final WorkflowServiceTChannel cadenceService =
+        new WorkflowServiceTChannel(ClientOptions.defaultInstance());
     // Get a new client
     // NOTE: to set a different options, you can do like this:
     // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();

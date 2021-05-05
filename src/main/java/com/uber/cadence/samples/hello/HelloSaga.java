@@ -29,7 +29,6 @@ import com.uber.cadence.workflow.Promise;
 import com.uber.cadence.workflow.Saga;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
-
 import java.time.Duration;
 
 /** Demonstrates implementing saga transaction and compensation logic using Cadence. */
@@ -132,14 +131,15 @@ public class HelloSaga {
     // Get a new client
     // NOTE: to set a different options, you can do like this:
     // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
-    WorkflowClient workflowClient = WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
+    WorkflowClient workflowClient =
+        WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
     // Get worker to poll the task list.
     WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
     Worker worker = factory.newWorker(TASK_LIST);
     worker.registerWorkflowImplementationTypes(
-            HelloSaga.SagaWorkflowImpl.class,
-            HelloSaga.ChildWorkflowOperationImpl.class,
-            HelloSaga.ChildWorkflowCompensationImpl.class);
+        HelloSaga.SagaWorkflowImpl.class,
+        HelloSaga.ChildWorkflowOperationImpl.class,
+        HelloSaga.ChildWorkflowCompensationImpl.class);
     worker.registerActivitiesImplementations(new ActivityOperationImpl());
     factory.start();
 

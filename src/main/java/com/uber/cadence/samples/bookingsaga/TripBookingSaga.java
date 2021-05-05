@@ -31,7 +31,8 @@ public class TripBookingSaga {
   @SuppressWarnings("CatchAndPrintStackTrace")
   public static void main(String[] args) {
     // Get a new client
-    WorkflowClient workflowClient = WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
+    WorkflowClient workflowClient =
+        WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
     // Get worker to poll the common task list.
     WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
     final Worker workerForCommonTaskList = factory.newWorker(TASK_LIST);
