@@ -45,8 +45,8 @@ import java.util.Map;
 
 /**
  * Hello World Cadence workflow that executes a single activity with emitting metrics to Prometheus.
- * Check http://localhost:9098/ to see the reported metrics for scaping. 
- * Requires a local instance the Cadence service to be running.
+ * Check http://localhost:9098/ to see the reported metrics for scaping. Requires a local instance
+ * the Cadence service to be running.
  */
 public class HelloMetric {
 
@@ -121,7 +121,6 @@ public class HelloMetric {
     return new PrometheusScope(scope);
   }
 }
-
 
 /**
  * PrometheusScope will replace all "-"(dash) into "_"(underscore) so that it meets the requirement

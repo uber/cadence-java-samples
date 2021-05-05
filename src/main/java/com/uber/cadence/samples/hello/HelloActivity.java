@@ -77,16 +77,16 @@ public class HelloActivity {
   public static void main(String[] args) {
     // Start a worker that hosts both workflow and activity implementations.
     final WorkflowServiceTChannel.ClientOptions.Builder builder =
-            new WorkflowServiceTChannel.ClientOptions.Builder();
+        new WorkflowServiceTChannel.ClientOptions.Builder();
     // Use 5 seconds as RPC timeout
     builder.setRpcTimeout(5 * 1000);
     IWorkflowService wfService =
-            new WorkflowServiceTChannel(
-                    Strings.isNullOrEmpty(System.getenv("CADENCE_SEEDS"))
-                            ? "127.0.0.1"
-                            : System.getenv("CADENCE_SEEDS"),
-                    7933,
-                    builder.build());
+        new WorkflowServiceTChannel(
+            Strings.isNullOrEmpty(System.getenv("CADENCE_SEEDS"))
+                ? "127.0.0.1"
+                : System.getenv("CADENCE_SEEDS"),
+            7933,
+            builder.build());
     Worker.Factory factory = new Worker.Factory(wfService, DOMAIN);
     Worker worker = factory.newWorker(TASK_LIST);
     // Workflows are stateful. So you need a type to create instances.
