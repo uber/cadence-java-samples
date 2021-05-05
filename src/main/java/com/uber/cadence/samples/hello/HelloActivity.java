@@ -17,14 +17,12 @@
 
 package com.uber.cadence.samples.hello;
 
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
-
-import com.google.common.base.Strings;
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
-import com.uber.cadence.serviceclient.IWorkflowService;
+import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
+import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
 
@@ -75,19 +73,12 @@ public class HelloActivity {
   }
 
   public static void main(String[] args) {
-    // Start a worker that hosts both workflow and activity implementations.
-    final WorkflowServiceTChannel.ClientOptions.Builder builder =
-        new WorkflowServiceTChannel.ClientOptions.Builder();
-    // Use 5 seconds as RPC timeout
-    builder.setRpcTimeout(5 * 1000);
-    IWorkflowService wfService =
-        new WorkflowServiceTChannel(
-            Strings.isNullOrEmpty(System.getenv("CADENCE_SEEDS"))
-                ? "127.0.0.1"
-                : System.getenv("CADENCE_SEEDS"),
-            7933,
-            builder.build());
-    Worker.Factory factory = new Worker.Factory(wfService, DOMAIN);
+    // Get a new client
+    // NOTE: to set a different options, you can do like this:
+    // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
+    WorkflowClient workflowClient = WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
+    // Get worker to poll the task list.
+    WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
     Worker worker = factory.newWorker(TASK_LIST);
     // Workflows are stateful. So you need a type to create instances.
     worker.registerWorkflowImplementationTypes(GreetingWorkflowImpl.class);
@@ -96,8 +87,6 @@ public class HelloActivity {
     // Start listening to the workflow and activity task lists.
     factory.start();
 
-    // Start a workflow execution. Usually this is done from another program.
-    WorkflowClient workflowClient = WorkflowClient.newInstance(DOMAIN);
     // Get a workflow stub using the same task list the worker uses.
     GreetingWorkflow workflow = workflowClient.newWorkflowStub(GreetingWorkflow.class);
     // Execute a workflow waiting for it to complete.

@@ -17,8 +17,6 @@
 
 package com.uber.cadence.samples.hello;
 
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
-
 import com.uber.cadence.TerminateWorkflowExecutionRequest;
 import com.uber.cadence.WorkflowExecution;
 import com.uber.cadence.WorkflowIdReusePolicy;
@@ -26,12 +24,16 @@ import com.uber.cadence.activity.Activity;
 import com.uber.cadence.activity.ActivityOptions;
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.common.CronSchedule;
-import com.uber.cadence.serviceclient.IWorkflowService;
+import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
+import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
+
 import java.time.Duration;
+
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 
 /**
  * Demonstrates a cron workflow that executes activity periodically. Requires a local instance of
@@ -83,8 +85,13 @@ public class HelloCron {
   }
 
   public static void main(String[] args) throws InterruptedException {
-    // Start a worker that hosts both workflow and activity implementations.
-    Worker.Factory factory = new Worker.Factory(DOMAIN);
+    final WorkflowServiceTChannel cadenceService = new WorkflowServiceTChannel(ClientOptions.defaultInstance());
+    // Get a new client
+    // NOTE: to set a different options, you can do like this:
+    // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
+    WorkflowClient workflowClient = WorkflowClient.newInstance(cadenceService);
+    // Get worker to poll the task list.
+    WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
     Worker worker = factory.newWorker(TASK_LIST);
     // Workflows are stateful. So you need a type to create instances.
     worker.registerWorkflowImplementationTypes(CronWorkflowImpl.class);
@@ -94,7 +101,6 @@ public class HelloCron {
     factory.start();
 
     // Start a workflow execution async. Usually this is done from another program.
-    WorkflowClient workflowClient = WorkflowClient.newInstance(DOMAIN);
     CronWorkflow workflow = workflowClient.newWorkflowStub(CronWorkflow.class);
     WorkflowClient.start(workflow::greetPeriodically, "World");
     System.out.println("Cron workflow is running");
@@ -103,7 +109,6 @@ public class HelloCron {
     // So we wait some time to see cron run twice then terminate the cron workflow.
     Thread.sleep(90000);
 
-    IWorkflowService cadenceService = new WorkflowServiceTChannel();
     // execution without RunID set will be used to terminate current run
     WorkflowExecution execution = new WorkflowExecution();
     execution.setWorkflowId(CRON_WORKFLOW_ID);

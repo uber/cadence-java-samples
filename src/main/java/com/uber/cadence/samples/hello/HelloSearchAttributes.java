@@ -17,8 +17,6 @@
 
 package com.uber.cadence.samples.hello;
 
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
-
 import com.uber.cadence.DescribeWorkflowExecutionRequest;
 import com.uber.cadence.DescribeWorkflowExecutionResponse;
 import com.uber.cadence.SearchAttributes;
@@ -26,23 +24,29 @@ import com.uber.cadence.WorkflowExecution;
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.client.WorkflowOptions;
-import com.uber.cadence.serviceclient.IWorkflowService;
+import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
+import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
 import com.uber.cadence.workflow.WorkflowUtils;
+
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
+
 public class HelloSearchAttributes {
 
   static final String TASK_LIST = "HelloSearchAttributes";
 
-  /** Workflow interface has to have at least one method annotated with @WorkflowMethod. */
+  /**
+   * Workflow interface has to have at least one method annotated with @WorkflowMethod.
+   */
   public interface GreetingWorkflow {
     /** @return greeting string */
     @WorkflowMethod(executionStartToCloseTimeoutSeconds = 10, taskList = TASK_LIST)
@@ -126,8 +130,13 @@ public class HelloSearchAttributes {
   }
 
   public static void main(String[] args) {
-    // Start a worker that hosts both workflow and activity implementations.
-    Worker.Factory factory = new Worker.Factory(DOMAIN);
+    final WorkflowServiceTChannel cadenceService = new WorkflowServiceTChannel(ClientOptions.defaultInstance());
+    // Get a new client
+    // NOTE: to set a different options, you can do like this:
+    // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
+    WorkflowClient workflowClient = WorkflowClient.newInstance(cadenceService);
+    // Get worker to poll the task list.
+    WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
     Worker worker = factory.newWorker(TASK_LIST);
     // Workflows are stateful. So you need a type to create instances.
     worker.registerWorkflowImplementationTypes(HelloSearchAttributes.GreetingWorkflowImpl.class);
@@ -137,8 +146,6 @@ public class HelloSearchAttributes {
     factory.start();
 
     // Start a workflow execution. Usually this is done from another program.
-    WorkflowClient workflowClient = WorkflowClient.newInstance(DOMAIN);
-
     // Set search attributes in workflowOptions
     String workflowID = UUID.randomUUID().toString();
     WorkflowOptions workflowOptions =
@@ -156,7 +163,6 @@ public class HelloSearchAttributes {
 
     // Bellow shows how to read search attributes using DescribeWorkflowExecution API
     // You can do similar things using ListWorkflowExecutions
-    IWorkflowService cadenceService = new WorkflowServiceTChannel();
     WorkflowExecution execution = new WorkflowExecution();
     execution.setWorkflowId(workflowID);
 

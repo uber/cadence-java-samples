@@ -17,13 +17,19 @@
 
 package com.uber.cadence.samples.hello;
 
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
-
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.client.WorkflowOptions;
+import com.uber.cadence.serviceclient.ClientOptions;
+import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
-import com.uber.cadence.workflow.*;
+import com.uber.cadence.worker.WorkerFactory;
+import com.uber.cadence.workflow.Async;
+import com.uber.cadence.workflow.Promise;
+import com.uber.cadence.workflow.Saga;
+import com.uber.cadence.workflow.Workflow;
+import com.uber.cadence.workflow.WorkflowMethod;
+
 import java.time.Duration;
 
 /** Demonstrates implementing saga transaction and compensation logic using Cadence. */
@@ -123,18 +129,21 @@ public class HelloSaga {
   }
 
   public static void main(String[] args) {
-    // Start a worker that hosts the workflow implementation.
-    Worker.Factory factory = new Worker.Factory(DOMAIN);
+    // Get a new client
+    // NOTE: to set a different options, you can do like this:
+    // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
+    WorkflowClient workflowClient = WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
+    // Get worker to poll the task list.
+    WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
     Worker worker = factory.newWorker(TASK_LIST);
     worker.registerWorkflowImplementationTypes(
-        HelloSaga.SagaWorkflowImpl.class,
-        HelloSaga.ChildWorkflowOperationImpl.class,
-        HelloSaga.ChildWorkflowCompensationImpl.class);
+            HelloSaga.SagaWorkflowImpl.class,
+            HelloSaga.ChildWorkflowOperationImpl.class,
+            HelloSaga.ChildWorkflowCompensationImpl.class);
     worker.registerActivitiesImplementations(new ActivityOperationImpl());
     factory.start();
 
     // Start a workflow execution. Usually this is done from another program.
-    WorkflowClient workflowClient = WorkflowClient.newInstance(DOMAIN);
     // Get a workflow stub using the same task list the worker uses.
     WorkflowOptions workflowOptions =
         new WorkflowOptions.Builder()
