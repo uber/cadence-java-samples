@@ -17,16 +17,18 @@
 
 package com.uber.cadence.samples.fileprocessing;
 
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
-
 import com.uber.cadence.client.WorkflowClient;
+import com.uber.cadence.serviceclient.ClientOptions;
+import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import java.net.URL;
 
 /** Starts a file processing sample workflow. */
 public class FileProcessingStarter {
 
   public static void main(String[] args) throws Exception {
-    WorkflowClient workflowClient = WorkflowClient.newInstance(DOMAIN);
+    // Get a new client
+    WorkflowClient workflowClient =
+        WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
     FileProcessingWorkflow workflow = workflowClient.newWorkflowStub(FileProcessingWorkflow.class);
 
     System.out.println("Executing FileProcessingWorkflow");

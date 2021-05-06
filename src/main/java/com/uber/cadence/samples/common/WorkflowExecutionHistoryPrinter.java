@@ -21,6 +21,7 @@ import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 
 import com.uber.cadence.WorkflowExecution;
 import com.uber.cadence.internal.common.WorkflowExecutionUtils;
+import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.IWorkflowService;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 
@@ -39,7 +40,7 @@ public class WorkflowExecutionHistoryPrinter {
               + " <workflowId> <runId>");
       System.exit(1);
     }
-    IWorkflowService cadenceService = new WorkflowServiceTChannel();
+    IWorkflowService cadenceService = new WorkflowServiceTChannel(ClientOptions.defaultInstance());
     WorkflowExecution workflowExecution = new WorkflowExecution();
     String workflowId = args[0];
     workflowExecution.setWorkflowId(workflowId);

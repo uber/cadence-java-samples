@@ -17,9 +17,11 @@
 
 package com.uber.cadence.samples.fileprocessing;
 
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
-
+import com.uber.cadence.client.WorkflowClient;
+import com.uber.cadence.serviceclient.ClientOptions;
+import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
+import com.uber.cadence.worker.WorkerFactory;
 import java.lang.management.ManagementFactory;
 
 /**
@@ -37,8 +39,11 @@ public class FileProcessingWorker {
 
     String hostSpecifiTaskList = ManagementFactory.getRuntimeMXBean().getName();
 
+    // Get a new client
+    WorkflowClient workflowClient =
+        WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
     // Get worker to poll the common task list.
-    Worker.Factory factory = new Worker.Factory(DOMAIN);
+    WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
     final Worker workerForCommonTaskList = factory.newWorker(TASK_LIST);
     workerForCommonTaskList.registerWorkflowImplementationTypes(FileProcessingWorkflowImpl.class);
     StoreActivitiesImpl storeActivityImpl = new StoreActivitiesImpl(hostSpecifiTaskList);

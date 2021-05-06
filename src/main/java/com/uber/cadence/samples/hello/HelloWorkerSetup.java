@@ -17,11 +17,13 @@
 
 package com.uber.cadence.samples.hello;
 
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
-
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
+import com.uber.cadence.serviceclient.ClientOptions;
+import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
+import com.uber.cadence.worker.WorkerFactory;
+import com.uber.cadence.worker.WorkerFactoryOptions;
 import com.uber.cadence.worker.WorkerOptions;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
@@ -73,7 +75,11 @@ public class HelloWorkerSetup {
   }
 
   public static void main(String[] args) {
-    // Start a worker that hosts both workflow and activity implementations.
+    // Get a new client
+    // NOTE: to set a different options, you can do like this:
+    // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
+    WorkflowClient workflowClient =
+        WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
 
     /**
      * If you see error "Not enough threads to execute workflows" exception it indicates that there
@@ -93,18 +99,18 @@ public class HelloWorkerSetup {
      * <p>maxConcurrentWorklfowExecutionSize defines how many workflow tasks can execute in
      * parallel. It's a worker level option.
      */
-    Worker.Factory factory =
-        new Worker.Factory(
-            DOMAIN,
-            new Worker.FactoryOptions.Builder()
+    WorkerFactory factory =
+        WorkerFactory.newInstance(
+            workflowClient,
+            WorkerFactoryOptions.newBuilder()
                 .setMaxWorkflowThreadCount(1000)
-                .setCacheMaximumSize(100)
+                .setStickyCacheSize(100)
                 .setDisableStickyExecution(false)
                 .build());
     Worker worker =
         factory.newWorker(
             TASK_LIST,
-            new WorkerOptions.Builder()
+            WorkerOptions.newBuilder()
                 .setMaxConcurrentActivityExecutionSize(100)
                 .setMaxConcurrentWorkflowExecutionSize(100)
                 .build());
@@ -116,7 +122,6 @@ public class HelloWorkerSetup {
     factory.start();
 
     // Start a workflow execution. Usually this is done from another program.
-    WorkflowClient workflowClient = WorkflowClient.newInstance(DOMAIN);
     // Get a workflow stub using the same task list the worker uses.
     GreetingWorkflow workflow = workflowClient.newWorkflowStub(GreetingWorkflow.class);
     // Execute a workflow waiting for it to complete.
