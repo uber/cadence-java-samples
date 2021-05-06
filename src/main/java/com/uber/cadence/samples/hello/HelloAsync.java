@@ -17,12 +17,11 @@
 
 package com.uber.cadence.samples.hello;
 
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
+
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
-import com.uber.cadence.serviceclient.ClientOptions;
-import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
-import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.workflow.Async;
 import com.uber.cadence.workflow.Functions.Func;
 import com.uber.cadence.workflow.Promise;
@@ -80,13 +79,8 @@ public class HelloAsync {
   }
 
   public static void main(String[] args) {
-    // Get a new client
-    // NOTE: to set a different options, you can do like this:
-    // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
-    WorkflowClient workflowClient =
-        WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
-    // Get worker to poll the task list.
-    WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
+    // Start a worker that hosts both workflow and activity implementations.
+    Worker.Factory factory = new Worker.Factory(DOMAIN);
     Worker worker = factory.newWorker(TASK_LIST);
     // Workflows are stateful. So you need a type to create instances.
     worker.registerWorkflowImplementationTypes(GreetingWorkflowImpl.class);
@@ -95,6 +89,8 @@ public class HelloAsync {
     // Start listening to the workflow and activity task lists.
     factory.start();
 
+    // Start a workflow execution. Usually this is done from another program.
+    WorkflowClient workflowClient = WorkflowClient.newInstance(DOMAIN);
     // Get a workflow stub using the same task list the worker uses.
     GreetingWorkflow workflow = workflowClient.newWorkflowStub(GreetingWorkflow.class);
     // Execute a workflow waiting for it to complete.

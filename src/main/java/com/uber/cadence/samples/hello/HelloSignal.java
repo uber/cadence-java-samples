@@ -17,12 +17,11 @@
 
 package com.uber.cadence.samples.hello;
 
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
+
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.client.WorkflowOptions;
-import com.uber.cadence.serviceclient.ClientOptions;
-import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
-import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.workflow.SignalMethod;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
@@ -89,13 +88,8 @@ public class HelloSignal {
   }
 
   public static void main(String[] args) throws Exception {
-    // Get a new client
-    // NOTE: to set a different options, you can do like this:
-    // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
-    WorkflowClient workflowClient =
-        WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
-    // Get worker to poll the task list.
-    WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
+    // Start a worker that hosts the workflow implementation.
+    Worker.Factory factory = new Worker.Factory(DOMAIN);
     Worker worker = factory.newWorker(TASK_LIST);
     worker.registerWorkflowImplementationTypes(GreetingWorkflowImpl.class);
     factory.start();
@@ -104,6 +98,7 @@ public class HelloSignal {
     String workflowId = RandomStringUtils.randomAlphabetic(10);
 
     // Start a workflow execution. Usually this is done from another program.
+    WorkflowClient workflowClient = WorkflowClient.newInstance(DOMAIN);
     // Get a workflow stub using the same task list the worker uses.
     // The newly started workflow is going to have the workflowId generated above.
     WorkflowOptions workflowOptions =
