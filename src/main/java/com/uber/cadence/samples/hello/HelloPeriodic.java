@@ -17,6 +17,8 @@
 
 package com.uber.cadence.samples.hello;
 
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
+
 import com.google.common.base.Throwables;
 import com.uber.cadence.WorkflowExecution;
 import com.uber.cadence.WorkflowIdReusePolicy;
@@ -24,6 +26,7 @@ import com.uber.cadence.activity.Activity;
 import com.uber.cadence.activity.ActivityOptions;
 import com.uber.cadence.client.DuplicateWorkflowException;
 import com.uber.cadence.client.WorkflowClient;
+import com.uber.cadence.client.WorkflowClientOptions;
 import com.uber.cadence.client.WorkflowException;
 import com.uber.cadence.client.WorkflowStub;
 import com.uber.cadence.serviceclient.ClientOptions;
@@ -122,7 +125,9 @@ public class HelloPeriodic {
     // NOTE: to set a different options, you can do like this:
     // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
     WorkflowClient workflowClient =
-        WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
+        WorkflowClient.newInstance(
+            new WorkflowServiceTChannel(ClientOptions.defaultInstance()),
+            WorkflowClientOptions.newBuilder().setDomain(DOMAIN).build());
     // Get worker to poll the task list.
     WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
     Worker worker = factory.newWorker(TASK_LIST);

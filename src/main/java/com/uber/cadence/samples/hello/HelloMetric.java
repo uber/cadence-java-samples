@@ -17,8 +17,11 @@
 
 package com.uber.cadence.samples.hello;
 
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
+
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
+import com.uber.cadence.client.WorkflowClientOptions;
 import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.IWorkflowService;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
@@ -97,7 +100,9 @@ public class HelloMetric {
         ClientOptions.newBuilder().setMetricsScope(createMetricScope()).build();
     //    final ClientOptions clientOptions = ClientOptions.newBuilder().build();
     IWorkflowService service = new WorkflowServiceTChannel(clientOptions);
-    final WorkflowClient workflowClient = WorkflowClient.newInstance(service);
+    final WorkflowClient workflowClient =
+        WorkflowClient.newInstance(
+            service, WorkflowClientOptions.newBuilder().setDomain(DOMAIN).build());
     // Start a worker that hosts both workflow and activity implementations.
     WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
     Worker worker = factory.newWorker(TASK_LIST, WorkerOptions.defaultInstance());
