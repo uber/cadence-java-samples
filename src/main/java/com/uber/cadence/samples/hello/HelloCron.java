@@ -25,6 +25,7 @@ import com.uber.cadence.WorkflowIdReusePolicy;
 import com.uber.cadence.activity.Activity;
 import com.uber.cadence.activity.ActivityOptions;
 import com.uber.cadence.client.WorkflowClient;
+import com.uber.cadence.client.WorkflowClientOptions;
 import com.uber.cadence.common.CronSchedule;
 import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
@@ -89,7 +90,9 @@ public class HelloCron {
     // Get a new client
     // NOTE: to set a different options, you can do like this:
     // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
-    WorkflowClient workflowClient = WorkflowClient.newInstance(cadenceService);
+    WorkflowClient workflowClient =
+        WorkflowClient.newInstance(
+            cadenceService, WorkflowClientOptions.newBuilder().setDomain(DOMAIN).build());
     // Get worker to poll the task list.
     WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
     Worker worker = factory.newWorker(TASK_LIST);

@@ -18,5 +18,5 @@
 package com.uber.cadence.samples.common;
 
 public class SampleConstants {
-  public static final String DOMAIN = "sample";
+  public static final String DOMAIN = "samples-domain";
 }

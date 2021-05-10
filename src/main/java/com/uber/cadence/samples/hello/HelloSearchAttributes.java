@@ -25,6 +25,7 @@ import com.uber.cadence.SearchAttributes;
 import com.uber.cadence.WorkflowExecution;
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
+import com.uber.cadence.client.WorkflowClientOptions;
 import com.uber.cadence.client.WorkflowOptions;
 import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
@@ -132,7 +133,9 @@ public class HelloSearchAttributes {
     // Get a new client
     // NOTE: to set a different options, you can do like this:
     // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
-    WorkflowClient workflowClient = WorkflowClient.newInstance(cadenceService);
+    WorkflowClient workflowClient =
+        WorkflowClient.newInstance(
+            cadenceService, WorkflowClientOptions.newBuilder().setDomain(DOMAIN).build());
     // Get worker to poll the task list.
     WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
     Worker worker = factory.newWorker(TASK_LIST);

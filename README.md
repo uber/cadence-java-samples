@@ -52,13 +52,20 @@ Run Cadence Server using Docker Compose:
     curl -O https://raw.githubusercontent.com/uber/cadence/master/docker/docker-compose.yml
     docker-compose up
 
-If this does not work, see the instructions for running Cadence Server at https://github.com/uber/cadence/blob/master/README.md.
+If this does not work, see the instructions for running Cadence Server
+at https://github.com/uber/cadence/blob/master/README.md.
 
 ## Register the Domain
 
-To register the *sample* domain, run the following command once before running any samples:
+To register the *samples-domain* domain, run the following command once before running any samples:
 
     ./gradlew -q execute -PmainClass=com.uber.cadence.samples.common.RegisterDomain
+
+Or using Cadence CLI:
+
+```
+cadence --domain samples-domain domain register
+```
 
 ## See Cadence UI
 
@@ -66,12 +73,11 @@ The Cadence Server running in a docker container includes a Web UI.
 
 Connect to [http://localhost:8088](http://localhost:8088).
 
-Enter the *sample* domain. You'll see a "No Results" page. After running any sample, change the 
-filter in the
+Enter the *samples-domain* domain. You'll see a "No Results" page. After running any sample, change the filter in the
 top right corner from "Open" to "Closed" to see the list of the completed workflows.
 
-Click on a *RUN ID* of a workflow to see more details about it. Try different view formats to get a different level
-of details about the execution history.
+Click on a *RUN ID* of a workflow to see more details about it. Try different view formats to get a different level of
+details about the execution history.
 
 ## Install Cadence CLI
 

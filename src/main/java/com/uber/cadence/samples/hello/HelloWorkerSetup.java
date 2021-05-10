@@ -17,8 +17,11 @@
 
 package com.uber.cadence.samples.hello;
 
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
+
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
+import com.uber.cadence.client.WorkflowClientOptions;
 import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
@@ -79,7 +82,9 @@ public class HelloWorkerSetup {
     // NOTE: to set a different options, you can do like this:
     // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
     WorkflowClient workflowClient =
-        WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
+        WorkflowClient.newInstance(
+            new WorkflowServiceTChannel(ClientOptions.defaultInstance()),
+            WorkflowClientOptions.newBuilder().setDomain(DOMAIN).build());
 
     /**
      * If you see error "Not enough threads to execute workflows" exception it indicates that there

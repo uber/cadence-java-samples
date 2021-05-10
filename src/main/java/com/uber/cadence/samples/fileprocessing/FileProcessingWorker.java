@@ -17,7 +17,10 @@
 
 package com.uber.cadence.samples.fileprocessing;
 
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
+
 import com.uber.cadence.client.WorkflowClient;
+import com.uber.cadence.client.WorkflowClientOptions;
 import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
@@ -41,7 +44,9 @@ public class FileProcessingWorker {
 
     // Get a new client
     WorkflowClient workflowClient =
-        WorkflowClient.newInstance(new WorkflowServiceTChannel(ClientOptions.defaultInstance()));
+        WorkflowClient.newInstance(
+            new WorkflowServiceTChannel(ClientOptions.defaultInstance()),
+            WorkflowClientOptions.newBuilder().setDomain(DOMAIN).build());
     // Get worker to poll the common task list.
     WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
     final Worker workerForCommonTaskList = factory.newWorker(TASK_LIST);
