@@ -19,6 +19,7 @@ package com.uber.cadence.samples.hello;
 
 import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 
+import com.uber.cadence.activity.Activity;
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.client.WorkflowClientOptions;
@@ -53,7 +54,7 @@ public class HelloCancellation {
 
   /** Activity interface is just a POJI. */
   public interface GreetingActivities {
-    @ActivityMethod(scheduleToCloseTimeoutSeconds = 20)
+    @ActivityMethod(scheduleToCloseTimeoutSeconds = 20, heartbeatTimeoutSeconds = 2)
     String composeGreeting(String greeting, String name);
 
     @ActivityMethod(scheduleToCloseTimeoutSeconds = 20)
@@ -101,7 +102,10 @@ public class HelloCancellation {
     public String composeGreeting(String greeting, String name) {
       invocations.add("composeGreeting");
       try {
-        Thread.sleep(10000);
+        for (int i = 0; i < 10; i++) {
+          Activity.heartbeat("i:" + i);
+          Thread.sleep(1000);
+        }
       } catch (InterruptedException e) {
         e.printStackTrace();
         throw new RuntimeException("catch exception in activity", e);
