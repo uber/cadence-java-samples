@@ -53,10 +53,10 @@ public class HelloCancellation {
 
   /** Activity interface is just a POJI. */
   public interface GreetingActivities {
-    @ActivityMethod(scheduleToCloseTimeoutSeconds = 2)
+    @ActivityMethod(scheduleToCloseTimeoutSeconds = 20)
     String composeGreeting(String greeting, String name);
 
-    @ActivityMethod(scheduleToCloseTimeoutSeconds = 2)
+    @ActivityMethod(scheduleToCloseTimeoutSeconds = 20)
     String sayGoodbye(String name);
   }
 
@@ -100,6 +100,12 @@ public class HelloCancellation {
     @Override
     public String composeGreeting(String greeting, String name) {
       invocations.add("composeGreeting");
+      try {
+        Thread.sleep(10000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+        throw new RuntimeException("catch exception in activity", e);
+      }
       return greeting + " " + name + "!";
     }
 
@@ -114,7 +120,7 @@ public class HelloCancellation {
     }
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws InterruptedException {
     // Get a new client
     // NOTE: to set a different options, you can do like this:
     // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
@@ -145,6 +151,8 @@ public class HelloCancellation {
 
     client.start("World");
 
+    // wait for 5 seconds to let the activity start
+    Thread.sleep(5 * 1000);
     // issue cancellation request. This will trigger a CancellationException on the workflow.
     client.cancel();
 
