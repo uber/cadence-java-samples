@@ -69,7 +69,7 @@ public class HelloSignalAndResponse {
 
     /** Receives name through an external signal. */
     @SignalMethod
-    void waitForName(String name);
+    void receiveName(String name);
 
     @SignalMethod
     void exit();
@@ -92,19 +92,21 @@ public class HelloSignalAndResponse {
         }
         String message = messageQueue.remove(0);
         receivedMessages.add(message);
-
-        Map<String, Object> upsertedMap = new HashMap<>();
-        // Use CustomKeywordField for response, in real code you may use other fields
-        // If there are multiple signals processed in paralell, consider returning a map of message
-        // to each status/result
-        // so that they won't overwrite each other
-        upsertedMap.put("CustomKeywordField", message + ":" + "No_Error");
-        Workflow.upsertSearchAttributes(upsertedMap);
       }
     }
 
     @Override
-    public void waitForName(String name) {
+    public void receiveName(String name) {
+      Map<String, Object> upsertedMap = new HashMap<>();
+      // Because we are going to get the response after signal, make sure first thing to do in the
+      // signal method is to
+      // upsert search attribute witht he response.
+      // Use CustomKeywordField for response, in real code you may use other fields
+      // If there are multiple signals processed in paralell, consider returning a map of message
+      // to each status/result so that they won't overwrite each other
+      upsertedMap.put("CustomKeywordField", name + ":" + "No_Error");
+      Workflow.upsertSearchAttributes(upsertedMap);
+
       messageQueue.add(name);
     }
 
@@ -149,16 +151,16 @@ public class HelloSignalAndResponse {
     // This workflow keeps receiving signals until exit is called
     String signal = "World";
 
-    final signalUntilAppliedResult result =
-        signalUntilApplied(
+    final signalWaitResult result =
+        signalAndWait(
             workflowClient,
             workflowId,
             "",
             () -> {
-              workflow.waitForName(signal); // sends waitForName signal
+              workflow.receiveName(signal); // sends waitForName signal
             },
             JsonDataConverter.getInstance(),
-            "GreetingWorkflow::waitForName",
+            "GreetingWorkflow::receiveName",
             signal);
 
     System.out.printf(
@@ -181,7 +183,7 @@ public class HelloSignalAndResponse {
               searchAttributes, "CustomKeywordField", String.class);
       System.out.printf("Signal result is: %s\n", keyword);
     } else {
-      System.out.printf("No result since signal is not process(workflow may stopped earlier");
+      System.out.printf("No result because signal was not processed");
     }
   }
 
@@ -191,6 +193,10 @@ public class HelloSignalAndResponse {
    * by in the history(meaning recieved). It compare signalName and the signal method argument to
    * determine if that's the signal you sent. TODO: if this feature is proved to be useful, we
    * should move to client or server implementation
+   *
+   * <p>NOTE that the signalOperation should not use requestedID for deduping. (However, this
+   * requestedID is not exposed in Java client yet anyway). Because deduping means a noop and return
+   * success, then this helper will wait for signal forever.
    *
    * @param workflowClient
    * @param workflowId
@@ -202,7 +208,7 @@ public class HelloSignalAndResponse {
    * @param signalArgs for comparing the signalData(converted by dataConverter) received in the
    *     history
    */
-  private static signalUntilAppliedResult signalUntilApplied(
+  private static signalWaitResult signalAndWait(
       WorkflowClient workflowClient,
       String workflowId,
       String runId,
@@ -212,7 +218,7 @@ public class HelloSignalAndResponse {
       Object... signalArgs)
       throws Exception {
     final byte[] signalData = dataConverter.toData(signalArgs);
-    signalUntilAppliedResult result = new signalUntilAppliedResult();
+    signalWaitResult result = new signalWaitResult();
 
     // get the current eventID
     WorkflowExecution execution = new WorkflowExecution();
@@ -282,7 +288,7 @@ public class HelloSignalAndResponse {
     return result;
   }
 
-  private static class signalUntilAppliedResult {
+  private static class signalWaitResult {
     public boolean isSignalProcessed;
     public boolean isSignalReceived;
     public boolean isWorkflowRunning;
