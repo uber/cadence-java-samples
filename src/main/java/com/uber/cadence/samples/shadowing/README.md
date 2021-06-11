@@ -1,7 +1,11 @@
 ##Shadowing example:
 
-Shadowing worker uses for detecting workflow non-deterministic error 
-prior to the workflow code deployment to prod.
+We provide Workflow Shadowing as a local testing solution. The example can be found in
+[HelloWorkflowShadowingTest](../../../../../../../test/java/com/uber/cadence/samples/hello/HelloWorkflowShadowingTest.java)
+
+
+This shadowing worker uses for detecting workflow non-deterministic error 
+prior to the workflow code deployment to prod. You can setup this shadowing worker in non-prod envrionment to shadow production traffic.
 
 More detail can be found: [design doc](https://github.com/uber/cadence/blob/master/docs/design/workflow-shadowing/2547-workflow-shadowing.md)
 
