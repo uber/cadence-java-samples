@@ -62,7 +62,7 @@ public class HelloSignalAndResponse {
   /** Workflow interface must have a method annotated with @WorkflowMethod. */
   public interface GreetingWorkflow {
     /**
-     * @return list of greeting strings that were received through the waitForNameMethod. This
+     * @return list of greeting strings that were received through the receiveName Method. This
      *     method will block until the number of greetings specified are received.
      */
     @WorkflowMethod
@@ -157,7 +157,7 @@ public class HelloSignalAndResponse {
             workflowId,
             "",
             () -> {
-              workflow.receiveName(signal); // sends waitForName signal
+              workflow.receiveName(signal); // sends receiveName signal
             },
             JsonDataConverter.getInstance(),
             "GreetingWorkflow::receiveName",
