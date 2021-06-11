@@ -99,8 +99,7 @@ public class HelloSignalAndResponse {
     public void receiveName(String name) {
       Map<String, Object> upsertedMap = new HashMap<>();
       // Because we are going to get the response after signal, make sure first thing to do in the
-      // signal method is to
-      // upsert search attribute witht he response.
+      // signal method is to upsert search attribute with the response.
       // Use CustomKeywordField for response, in real code you may use other fields
       // If there are multiple signals processed in paralell, consider returning a map of message
       // to each status/result so that they won't overwrite each other
