@@ -51,7 +51,8 @@ import org.apache.commons.lang.RandomStringUtils;
 
 /**
  * Demonstrates asynchronous signalling of a workflow, and wait until it's applied and get a
- * response. Requires a local instance of Cadence server to be running.
+ * response. This should be much performant(lower latency) than using signal+query approach.
+ * Requires a local instance of Cadence server to be running.
  */
 @SuppressWarnings("ALL")
 public class HelloSignalAndResponse {
