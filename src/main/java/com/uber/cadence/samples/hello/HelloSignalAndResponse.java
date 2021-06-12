@@ -50,9 +50,9 @@ import java.util.Map;
 import org.apache.commons.lang.RandomStringUtils;
 
 /**
- * Demonstrates asynchronous signalling of a workflow, and wait until it's applied and get a
+ * Demonstrates signalling a workflow, and wait until it's applied and get a
  * response. This should be much performant(lower latency) than using signal+query approach.
- * Requires a local instance of Cadence server to be running.
+ * Requires a Cadence server to be running.
  */
 @SuppressWarnings("ALL")
 public class HelloSignalAndResponse {
