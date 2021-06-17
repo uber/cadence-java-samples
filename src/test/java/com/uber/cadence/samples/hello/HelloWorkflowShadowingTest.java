@@ -1,7 +1,7 @@
 /*
  *  Copyright 2012-2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
- *  Modifications copyright (C) 2017-2021 Uber Technologies, Inc.
+ *  Modifications copyright (C) 2017 Uber Technologies, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"). You may not
  *  use this file except in compliance with the License. A copy of the License is
@@ -17,6 +17,9 @@
 
 package com.uber.cadence.samples.hello;
 
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
+import static com.uber.cadence.samples.hello.HelloActivity.TASK_LIST;
+
 import com.google.common.collect.Lists;
 import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.IWorkflowService;
@@ -26,18 +29,17 @@ import com.uber.cadence.shadower.Mode;
 import com.uber.cadence.testing.WorkflowShadower;
 import com.uber.cadence.worker.ShadowingOptions;
 import com.uber.cadence.worker.WorkflowStatus;
+import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
-import static com.uber.cadence.samples.hello.HelloActivity.TASK_LIST;
-
 public class HelloWorkflowShadowingTest {
+  @Ignore
   @Test
   public void testShadowing() throws Throwable {
     IWorkflowService service = new WorkflowServiceTChannel(ClientOptions.defaultInstance());
 
-    ShadowingOptions options = ShadowingOptions
-            .newBuilder()
+    ShadowingOptions options =
+        ShadowingOptions.newBuilder()
             .setDomain(DOMAIN)
             .setShadowMode(Mode.Normal)
             .setWorkflowTypes(Lists.newArrayList("GreetingWorkflow::getGreeting"))
