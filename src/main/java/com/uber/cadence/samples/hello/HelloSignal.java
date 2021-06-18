@@ -19,6 +19,7 @@ package com.uber.cadence.samples.hello;
 
 import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 
+import com.uber.cadence.FeatureFlags;
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.client.WorkflowClientOptions;
 import com.uber.cadence.client.WorkflowOptions;
@@ -97,7 +98,11 @@ public class HelloSignal {
     // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
     WorkflowClient workflowClient =
         WorkflowClient.newInstance(
-            new WorkflowServiceTChannel(ClientOptions.defaultInstance()),
+            new WorkflowServiceTChannel(
+                ClientOptions.newBuilder()
+                    .setFeatureFlags(
+                        new FeatureFlags().setWorkflowExecutionAlreadyCompletedErrorEnabled(true))
+                    .build()),
             WorkflowClientOptions.newBuilder().setDomain(DOMAIN).build());
     // Get worker to poll the task list.
     WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
