@@ -17,8 +17,6 @@
 
 package com.uber.cadence.samples.hello;
 
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
-
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.client.WorkflowClientOptions;
@@ -26,8 +24,14 @@ import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
 import com.uber.cadence.worker.WorkerFactory;
+import com.uber.cadence.worker.WorkerFactoryOptions;
+import com.uber.cadence.worker.WorkerOptions;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
+
+import java.time.LocalDateTime;
+
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 
 /**
  * Hello World Cadence workflow that executes a single activity. Requires a local instance the
@@ -63,6 +67,18 @@ public class HelloLocalActivity {
 
     @Override
     public String getGreeting(String name) {
+      int delaysRemaining = 2;
+
+      while (delaysRemaining > 0) {
+        System.out.println("Workflow.sleep-ing name:" + name);
+        Workflow.sleep(500);
+        delaysRemaining -= 1;
+      }
+
+      for (int i = 0; i < 10; i++) {
+        activities.composeGreeting("Hello" + i, name);
+      }
+
       // This is a blocking call that returns only after the activity has completed.
       return activities.composeGreeting("Hello", name);
     }
@@ -71,6 +87,12 @@ public class HelloLocalActivity {
   static class GreetingActivitiesImpl implements GreetingActivities {
     @Override
     public String composeGreeting(String greeting, String name) {
+      try {
+        System.out.println("Activity.sleep-ing" + " name: " + name + "greeting: " + greeting );
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
       return greeting + " " + name + "!";
     }
   }
@@ -83,22 +105,48 @@ public class HelloLocalActivity {
         WorkflowClient.newInstance(
             new WorkflowServiceTChannel(ClientOptions.defaultInstance()),
             WorkflowClientOptions.newBuilder().setDomain(DOMAIN).build());
+
     // Get worker to poll the task list.
-    WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
-    Worker worker = factory.newWorker(TASK_LIST);
+    WorkerFactoryOptions workerFactoryOptions =
+        WorkerFactoryOptions.newBuilder().setStickyCacheSize(10).build();
+    WorkerFactory factory = WorkerFactory.newInstance(workflowClient, workerFactoryOptions);
+
+    WorkerOptions workerOptions =
+        WorkerOptions.newBuilder()
+            .setMaxConcurrentWorkflowExecutionSize(5)
+            .setMaxConcurrentActivityExecutionSize(5)
+            .setMaxConcurrentLocalActivityExecutionSize(5)
+            .build();
+
+    Worker worker = factory.newWorker(TASK_LIST, workerOptions);
+
     // Workflows are stateful. So you need a type to create instances.
     worker.registerWorkflowImplementationTypes(GreetingWorkflowImpl.class);
+
     // Activities are stateless and thread safe. So a shared instance is used.
     worker.registerActivitiesImplementations(new GreetingActivitiesImpl());
+
     // Start listening to the workflow and activity task lists.
     factory.start();
 
-    // Start a workflow execution. Usually this is done from another program.
-    // Get a workflow stub using the same task list the worker uses.
-    GreetingWorkflow workflow = workflowClient.newWorkflowStub(GreetingWorkflow.class);
-    // Execute a workflow waiting for it to complete.
-    String greeting = workflow.getGreeting("World");
-    System.out.println(greeting);
-    System.exit(0);
+    System.out.println("Starting at " + LocalDateTime.now());
+
+    // Execute many asynchronously
+    int workflowCount = 1200;
+    for (int i = 0; i < workflowCount; i++) {
+      GreetingWorkflow workflow = workflowClient.newWorkflowStub(GreetingWorkflow.class);
+      WorkflowClient.start(workflow::getGreeting, "World" + workflowCount);
+    }
+
+    // Don't let process exit since worker is working async
+    while (true) {
+      try {
+        Thread.sleep(50);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+
+    //    System.exit(0);
   }
 }
