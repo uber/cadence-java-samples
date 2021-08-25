@@ -17,9 +17,11 @@
 
 package com.uber.cadence.samples.hello;
 
+import com.uber.cadence.WorkflowIdReusePolicy;
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.client.WorkflowClientOptions;
+import com.uber.cadence.client.WorkflowOptions;
 import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
@@ -29,7 +31,9 @@ import com.uber.cadence.worker.WorkerOptions;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 
@@ -44,7 +48,7 @@ public class HelloLocalActivity {
   /** Workflow interface has to have at least one method annotated with @WorkflowMethod. */
   public interface GreetingWorkflow {
     /** @return greeting string */
-    @WorkflowMethod(executionStartToCloseTimeoutSeconds = 10, taskList = TASK_LIST)
+    @WorkflowMethod(taskList = TASK_LIST)
     String getGreeting(String name);
   }
 
@@ -88,7 +92,7 @@ public class HelloLocalActivity {
     @Override
     public String composeGreeting(String greeting, String name) {
       try {
-        System.out.println("Activity.sleep-ing" + " name: " + name + "greeting: " + greeting );
+        System.out.println("Activity.sleep-ing" + " name: " + name + " greeting: " + greeting);
         Thread.sleep(100);
       } catch (InterruptedException e) {
         e.printStackTrace();
@@ -132,10 +136,21 @@ public class HelloLocalActivity {
     System.out.println("Starting at " + LocalDateTime.now());
 
     // Execute many asynchronously
-    int workflowCount = 1200;
-    for (int i = 0; i < workflowCount; i++) {
-      GreetingWorkflow workflow = workflowClient.newWorkflowStub(GreetingWorkflow.class);
-      WorkflowClient.start(workflow::getGreeting, "World" + workflowCount);
+    boolean DO_PUBLISH = false; // Just convenience to drain stuck workflows upon restart.
+    if(DO_PUBLISH) {
+      int workflowCount = 1200;
+      for (int i = 0; i < workflowCount; i++) {
+        GreetingWorkflow workflow =
+                workflowClient.newWorkflowStub(
+                        GreetingWorkflow.class,
+                        new WorkflowOptions.Builder()
+                                .setExecutionStartToCloseTimeout(Duration.ofDays(3)) // Never timeout for test
+                                .setWorkflowId(UUID.randomUUID().toString()) // Always should be unique.
+                                .setWorkflowIdReusePolicy(WorkflowIdReusePolicy.AllowDuplicate)
+                                .build());
+
+        WorkflowClient.start(workflow::getGreeting, "World-" + i);
+      }
     }
 
     // Don't let process exit since worker is working async
