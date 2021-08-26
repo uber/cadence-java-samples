@@ -95,7 +95,7 @@ public class HelloLocalActivity {
         System.out.println("Activity.sleep-ing" + " name: " + name + " greeting: " + greeting);
         Thread.sleep(100);
       } catch (InterruptedException e) {
-        e.printStackTrace();
+        throw new RuntimeException(e);
       }
       return greeting + " " + name + "!";
     }
