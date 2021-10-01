@@ -17,8 +17,11 @@
 
 package com.uber.cadence.samples.hello;
 
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
+
 import com.uber.cadence.QueryConsistencyLevel;
 import com.uber.cadence.QueryRejectCondition;
+import com.uber.cadence.WorkflowExecution;
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.client.WorkflowClientOptions;
 import com.uber.cadence.client.WorkflowOptions;
@@ -31,12 +34,12 @@ import com.uber.cadence.workflow.QueryMethod;
 import com.uber.cadence.workflow.SignalMethod;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
-
 import java.time.Duration;
 
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
-
-/** Demonstrates consistent query capability. Requires a local instance of Cadence server of version >= 0.22.0 to be running. */
+/**
+ * Demonstrates consistent query capability. Requires a local instance of Cadence server of version
+ * >= 0.22.0 to be running.
+ */
 public class HelloConsistentQuery {
 
   static final String TASK_LIST = "HelloQuery";
@@ -68,7 +71,7 @@ public class HelloConsistentQuery {
 
     @Override
     public void increase() {
-      this.counter ++;
+      this.counter++;
     }
 
     @Override
@@ -98,15 +101,48 @@ public class HelloConsistentQuery {
             .setTaskList(TASK_LIST)
             .setExecutionStartToCloseTimeout(Duration.ofSeconds(30))
             .build();
-    final WorkflowStub workflow = workflowClient.newUntypedWorkflowStub("GreetingWorkflow::createGreeting", workflowOptions);
+    final WorkflowStub workflow =
+        workflowClient.newUntypedWorkflowStub("GreetingWorkflow::createGreeting", workflowOptions);
+
     // Start workflow asynchronously to not use another thread to query.
-    workflow.start("World");
+    final WorkflowExecution wf = workflow.start("World");
+    System.out.println("started workflow " + wf.getWorkflowId() + ", " + wf.getRunId());
+    System.out.println("initial value after started");
+    System.out.println(
+        workflow.query(
+            "GreetingWorkflow::getCounter",
+            Integer.class,
+            QueryRejectCondition.NOT_COMPLETED_CLEANLY,
+            QueryConsistencyLevel.STRONG)); // Should print 0
+
     // Now we can send a signal to it using workflow stub.
-    workflow.signal("increase");
-    System.out.println(workflow.query("getCounter", Integer.class, QueryRejectCondition.NOT_OPEN, QueryConsistencyLevel.STRONG) ); // Should print 1
-    workflow.signal("increase");
-    workflow.signal("increase");
-    System.out.println(workflow.query("getCounter", Integer.class, QueryRejectCondition.NOT_OPEN, QueryConsistencyLevel.STRONG) ); // Should print 3
+    workflow.signal("GreetingWorkflow::increase");
+    System.out.println("after increase 1 time");
+    System.out.println(
+        workflow.query(
+            "GreetingWorkflow::getCounter",
+            Integer.class,
+            QueryRejectCondition.NOT_COMPLETED_CLEANLY,
+            QueryConsistencyLevel.STRONG)); // Should print 1, there is a bug here... TODO https://github.com/uber/cadence/issues/4526
+
+    System.out.println(
+        workflow.query(
+            "GreetingWorkflow::getCounter",
+            Integer.class,
+            QueryRejectCondition.NOT_COMPLETED_CLEANLY,
+            QueryConsistencyLevel.STRONG)); // Should print 1, another query works..
+
+    workflow.signal("GreetingWorkflow::increase");
+    workflow.signal("GreetingWorkflow::increase");
+    workflow.signal("GreetingWorkflow::increase");
+    workflow.signal("GreetingWorkflow::increase");
+    System.out.println("after increase 1+4 times");
+    System.out.println(
+        workflow.query(
+            "GreetingWorkflow::getCounter",
+            Integer.class,
+            QueryRejectCondition.NOT_COMPLETED_CLEANLY,
+            QueryConsistencyLevel.STRONG)); // Should print 5
     System.exit(0);
   }
 }
