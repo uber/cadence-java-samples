@@ -127,13 +127,6 @@ public class HelloConsistentQuery {
                 .STRONG)); // Should print 1, there is a bug here... TODO
                            // https://github.com/uber/cadence/issues/4526
 
-    System.out.println(
-        workflow.query(
-            "GreetingWorkflow::getCounter",
-            Integer.class,
-            QueryRejectCondition.NOT_COMPLETED_CLEANLY,
-            QueryConsistencyLevel.STRONG)); // Should print 1, another query works..
-
     workflow.signal("GreetingWorkflow::increase");
     workflow.signal("GreetingWorkflow::increase");
     workflow.signal("GreetingWorkflow::increase");
