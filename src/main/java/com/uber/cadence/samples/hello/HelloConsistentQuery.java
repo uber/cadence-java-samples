@@ -20,8 +20,8 @@ package com.uber.cadence.samples.hello;
 import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 
 import com.uber.cadence.QueryConsistencyLevel;
-import com.uber.cadence.QueryRejectCondition;
 import com.uber.cadence.WorkflowExecution;
+import com.uber.cadence.client.QueryOptions;
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.client.WorkflowClientOptions;
 import com.uber.cadence.client.WorkflowOptions;
@@ -109,23 +109,25 @@ public class HelloConsistentQuery {
     System.out.println("started workflow " + wf.getWorkflowId() + ", " + wf.getRunId());
     System.out.println("initial value after started");
     System.out.println(
-        workflow.query(
+        workflow.queryWithOptions(
             "GreetingWorkflow::getCounter",
+            new QueryOptions.Builder()
+                .setQueryConsistencyLevel(QueryConsistencyLevel.STRONG)
+                .build(),
             Integer.class,
-            QueryRejectCondition.NOT_COMPLETED_CLEANLY,
-            QueryConsistencyLevel.STRONG)); // Should print 0
+            Integer.class)); // Should print 0
 
     // Now we can send a signal to it using workflow stub.
     workflow.signal("GreetingWorkflow::increase");
     System.out.println("after increase 1 time");
     System.out.println(
-        workflow.query(
+        workflow.queryWithOptions(
             "GreetingWorkflow::getCounter",
+            new QueryOptions.Builder()
+                .setQueryConsistencyLevel(QueryConsistencyLevel.STRONG)
+                .build(),
             Integer.class,
-            QueryRejectCondition.NOT_COMPLETED_CLEANLY,
-            QueryConsistencyLevel
-                .STRONG)); // Should print 1, there is a bug here... TODO
-                           // https://github.com/uber/cadence/issues/4526
+            Integer.class)); // Should print 1, there is a bug here...
 
     workflow.signal("GreetingWorkflow::increase");
     workflow.signal("GreetingWorkflow::increase");
@@ -133,11 +135,13 @@ public class HelloConsistentQuery {
     workflow.signal("GreetingWorkflow::increase");
     System.out.println("after increase 1+4 times");
     System.out.println(
-        workflow.query(
+        workflow.queryWithOptions(
             "GreetingWorkflow::getCounter",
+            new QueryOptions.Builder()
+                .setQueryConsistencyLevel(QueryConsistencyLevel.STRONG)
+                .build(),
             Integer.class,
-            QueryRejectCondition.NOT_COMPLETED_CLEANLY,
-            QueryConsistencyLevel.STRONG)); // Should print 5
+            Integer.class)); // Should print 5
     System.exit(0);
   }
 }
