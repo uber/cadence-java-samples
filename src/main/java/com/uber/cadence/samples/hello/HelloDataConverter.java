@@ -21,20 +21,54 @@ import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
+import com.uber.cadence.client.WorkflowClientOptions;
 import com.uber.cadence.converter.DataConverter;
 import com.uber.cadence.converter.DataConverterException;
 import com.uber.cadence.converter.JsonDataConverter;
+import com.uber.cadence.serviceclient.ClientOptions;
+import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
-import com.uber.cadence.worker.WorkerOptions;
+import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 
 /**
- * Hello World Cadence workflow that executes a single activity. Requires a local instance the
- * Cadence service to be running.
+ * HelloDataConverter is a sample to how to implement a dataConverter to convert some objects that
+ * you want to use a different way to serialize/deserialize
  */
 public class HelloDataConverter {
+
+  /**
+   * MyStruct is a sample class that you want to use a different to serialize/deserialize it. In
+   * real-world you can put anything like Avro classes in it
+   */
+  public static class MyStruct {
+    public int num;
+    public String str;
+
+    public MyStruct(int num, String str) {
+      this.num = num;
+      this.str = str;
+    }
+
+    public static MyStruct fromBytes(byte[] content) {
+      String s = new String(content, Charset.defaultCharset());
+      String[] ss = s.split("#");
+      int num = Integer.parseInt(ss[0]);
+      return new MyStruct(num, ss[1]);
+    }
+
+    public byte[] toBytes() {
+      return (this.num + "#" + this.str).getBytes(Charset.defaultCharset());
+    }
+
+    @Override
+    public String toString() {
+      return str + " and " + num;
+    }
+  }
 
   static final String TASK_LIST = "HelloActivity";
 
@@ -42,95 +76,125 @@ public class HelloDataConverter {
   public interface GreetingWorkflow {
     /** @return greeting string */
     @WorkflowMethod(executionStartToCloseTimeoutSeconds = 10, taskList = TASK_LIST)
-    String getGreeting(String name);
+    String getGreeting(MyStruct st);
   }
 
   /** Activity interface is just a POJI. */
   public interface GreetingActivities {
     @ActivityMethod(scheduleToCloseTimeoutSeconds = 2)
-    MyStruct composeGreeting(String greeting, String name);
+    MyStruct composeGreeting(Integer num, String str);
   }
 
   /** GreetingWorkflow implementation that calls GreetingsActivities#composeGreeting. */
   public static class GreetingWorkflowImpl implements GreetingWorkflow {
 
-    /**
-     * Activity stub implements activity interface and proxies calls to it to Cadence activity
-     * invocations. Because activities are reentrant, only a single stub can be used for multiple
-     * activity invocations.
-     */
     private final GreetingActivities activities =
         Workflow.newActivityStub(GreetingActivities.class);
 
     @Override
-    public String getGreeting(String name) {
+    public String getGreeting(MyStruct st) {
       // This is a blocking call that returns only after the activity has completed.
-      MyStruct st = activities.composeGreeting("Hello", name);
-      return st.str + "....." + st.num;
-    }
-  }
-
-  public static class MyStruct {
-    private int num;
-    private String str;
-
-    public MyStruct(int num, String str) {
-      this.num = num;
-      this.str = str;
-    }
-
-    public String toString() {
-      return str + " and " + num;
+      st = activities.composeGreeting(st.num, st.str);
+      return st.toString();
     }
   }
 
   public static class MyStructConverter implements DataConverter {
-    private static final DataConverter jsonConverter = JsonDataConverter.getInstance();
 
+    private static final DataConverter cadenceDefaultDataConverter =
+        JsonDataConverter.getInstance();
+
+    /**
+     * * toData is converting input/output parameter of workflow/activity, exception, internal
+     * classes(local activity, heartbeat etc) into binary.
+     *
+     * @param values
+     * @return
+     * @throws DataConverterException
+     */
     @Override
-    public byte[] toData(final Object... value) throws DataConverterException {
-      if (value.length == 1 && value[0] instanceof MyStruct) {
-        MyStruct st = (MyStruct) value[0];
-        return (st.num + "#" + st.str).getBytes();
+    public byte[] toData(final Object... values) throws DataConverterException {
+      if (values == null || values.length == 0) {
+        return null;
       }
-      return jsonConverter.toData(value);
+
+      if (values.length == 1 && values[0] instanceof MyStruct) {
+        // NOTE: toData can be used to converting multiple input parameter as well.
+        // but here we assume that when passing MyStruct as input, we always use one parameter.
+        // In your real-world case, you can change this to support multiple(values.length > 1) if
+        // needed
+        MyStruct st = (MyStruct) values[0];
+        return st.toBytes();
+      }
+
+      // fallback to cadenceDefaultDataConverter to keep backward compatible
+      return cadenceDefaultDataConverter.toData(values);
     }
 
+    /**
+     * * fromData is converting binary back to a single object. It's only being used for output of
+     * workflow/activity, exception, internal classes(local activity, heartbeat etc)
+     *
+     * @param content
+     * @param valueClass
+     * @param valueType
+     * @param <T>
+     * @return
+     * @throws DataConverterException
+     */
     @Override
     public <T> T fromData(final byte[] content, final Class<T> valueClass, final Type valueType)
         throws DataConverterException {
       if (valueType.getTypeName().equals(MyStruct.class.getTypeName())) {
-        String s = new String(content);
-        String[] ss = s.split("#");
-        int num = Integer.parseInt(ss[0]);
-        MyStruct st = new MyStruct(num, ss[1]);
-        return (T) st;
+        return (T) MyStruct.fromBytes(content);
       } else {
-        return jsonConverter.fromData(content, valueClass, valueType);
+        return cadenceDefaultDataConverter.fromData(content, valueClass, valueType);
       }
     }
 
+    /*
+     * Used to deserialize a byte[] into one-to-many different value types. The
+     * primary use case for this is the deserialization of Workflow / Activity arguments for worker to execute workflow/activity
+     */
     @Override
-    public Object[] fromDataArray(final byte[] content, final Type... valueType)
+    public Object[] fromDataArray(final byte[] content, final Type... valueTypes)
         throws DataConverterException {
-      return jsonConverter.fromDataArray(content, valueType);
+      if ((content == null) || (content.length == 0)) {
+        Object[] result = new Object[valueTypes.length];
+        return result;
+      }
+      if (valueTypes.length == 1) {
+        final Object result;
+        final Type valueType = valueTypes[0];
+        if (valueType.getTypeName().equals(MyStruct.class.getTypeName())) {
+          result = MyStruct.fromBytes(content);
+          return new Object[] {result};
+        }
+      }
+
+      return cadenceDefaultDataConverter.fromDataArray(content, valueTypes);
     }
   }
 
   static class GreetingActivitiesImpl implements GreetingActivities {
     @Override
-    public MyStruct composeGreeting(String greeting, String name) {
-      return new MyStruct(123, greeting + "," + name);
+    public MyStruct composeGreeting(Integer num, String str) {
+      return new MyStruct(num * 2, str + "::" + str);
     }
   }
 
   public static void main(String[] args) {
-    // Start a worker that hosts both workflow and activity implementations.
-    Worker.Factory factory = new Worker.Factory(DOMAIN);
-    Worker worker =
-        factory.newWorker(
-            TASK_LIST,
-            new WorkerOptions.Builder().setDataConverter(new MyStructConverter()).build());
+    final MyStructConverter dc = new MyStructConverter();
+    // Get a new client
+    // NOTE: to set a different options, you can do like this:
+    // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
+    WorkflowClient workflowClient =
+        WorkflowClient.newInstance(
+            new WorkflowServiceTChannel(ClientOptions.defaultInstance()),
+            WorkflowClientOptions.newBuilder().setDataConverter(dc).setDomain(DOMAIN).build());
+    // Get worker to poll the task list.
+    WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
+    Worker worker = factory.newWorker(TASK_LIST);
     // Workflows are stateful. So you need a type to create instances.
     worker.registerWorkflowImplementationTypes(GreetingWorkflowImpl.class);
     // Activities are stateless and thread safe. So a shared instance is used.
@@ -138,12 +202,10 @@ public class HelloDataConverter {
     // Start listening to the workflow and activity task lists.
     factory.start();
 
-    // Start a workflow execution. Usually this is done from another program.
-    WorkflowClient workflowClient = WorkflowClient.newInstance(DOMAIN);
     // Get a workflow stub using the same task list the worker uses.
     GreetingWorkflow workflow = workflowClient.newWorkflowStub(GreetingWorkflow.class);
     // Execute a workflow waiting for it to complete.
-    String greeting = workflow.getGreeting("World");
+    String greeting = workflow.getGreeting(new MyStruct(100, "Hello"));
     System.out.println(greeting);
     System.exit(0);
   }
