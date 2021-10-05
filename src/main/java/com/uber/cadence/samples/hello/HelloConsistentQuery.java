@@ -127,7 +127,7 @@ public class HelloConsistentQuery {
                 .setQueryConsistencyLevel(QueryConsistencyLevel.STRONG)
                 .build(),
             Integer.class,
-            Integer.class)); // Should print 1, there is a bug here...
+            Integer.class)); // Should print 1
 
     workflow.signal("GreetingWorkflow::increase");
     workflow.signal("GreetingWorkflow::increase");
