@@ -29,13 +29,14 @@ repositories {
     maven {
         url "https://plugins.gradle.org/m2/"
     }
+    // replace with mavenLocal() if you want to test local change from Cadence Java Client (use publishToMarvenLocal to override)
     mavenCentral()
 }
 
 dependencies {
     errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
     errorprone("com.google.errorprone:error_prone_core:2.3.1")
-    compile group: 'com.uber.cadence', name: 'cadence-client', version: '3.3.0'
+    compile group: 'com.uber.cadence', name: 'cadence-client', version: '3.5.0'
     compile group: 'commons-configuration', name: 'commons-configuration', version: '1.9'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
     compile group: 'com.uber.m3', name: 'tally-core', version: '0.10.0'
