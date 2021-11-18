@@ -19,7 +19,12 @@ package com.uber.cadence.samples.calculation;
 
 import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 
+import com.uber.cadence.client.WorkflowClient;
+import com.uber.cadence.client.WorkflowClientOptions;
+import com.uber.cadence.serviceclient.ClientOptions;
+import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
+import com.uber.cadence.worker.WorkerFactory;
 
 public class WorkflowWorker {
 
@@ -27,8 +32,14 @@ public class WorkflowWorker {
 
   @SuppressWarnings("CatchAndPrintStackTrace")
   public static void main(String[] args) {
+    // Get a new client
+    WorkflowClient workflowClient =
+        WorkflowClient.newInstance(
+            new WorkflowServiceTChannel(ClientOptions.defaultInstance()),
+            WorkflowClientOptions.newBuilder().setDomain(DOMAIN).build());
+
     // Get worker to poll the common task list.
-    Worker.Factory factory = new Worker.Factory(DOMAIN);
+    WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
     final Worker workerForCommonTaskList = factory.newWorker(DEFAULT_TASK_LIST);
     workerForCommonTaskList.registerWorkflowImplementationTypes(WorkflowMethodsImpl.class);
     Activities activities = new ActivitiesImpl();

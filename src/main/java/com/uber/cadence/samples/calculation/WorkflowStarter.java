@@ -22,13 +22,19 @@ import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 import com.uber.cadence.WorkflowExecution;
 import com.uber.cadence.WorkflowIdReusePolicy;
 import com.uber.cadence.client.WorkflowClient;
+import com.uber.cadence.client.WorkflowClientOptions;
 import com.uber.cadence.client.WorkflowOptions;
+import com.uber.cadence.serviceclient.ClientOptions;
+import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 
 public class WorkflowStarter {
 
   @SuppressWarnings("CatchAndPrintStackTrace")
   public static void main(String[] args) {
-    final WorkflowClient workflowClient = WorkflowClient.newInstance(DOMAIN);
+    final WorkflowClient workflowClient =
+        WorkflowClient.newInstance(
+            new WorkflowServiceTChannel(ClientOptions.defaultInstance()),
+            WorkflowClientOptions.newBuilder().setDomain(DOMAIN).build());
 
     WorkflowOptions workflowOptions =
         new WorkflowOptions.Builder()
