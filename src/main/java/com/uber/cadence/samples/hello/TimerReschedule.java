@@ -26,12 +26,8 @@ import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
 import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.workflow.SignalMethod;
-import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
-import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
-import java.util.function.Supplier;
 
 public class TimerReschedule {
 
@@ -48,9 +44,9 @@ public class TimerReschedule {
   public static class TimerRescheduleWorkflowImpl implements TimerRescheduleWorkflow {
 
     private ExpirationTimer expirationTimer;
-    private static Duration TIMEOUT = Duration.ofMinutes(1);
+    private static Duration TIMEOUT = Duration.ofMinutes(100);
 
-    TimerRescheduleWorkflowImpl() {
+    public TimerRescheduleWorkflowImpl() {
       expirationTimer = new ExpirationTimer(TIMEOUT);
     }
 
@@ -82,56 +78,10 @@ public class TimerReschedule {
     // Start listening to the workflow and activity task lists.
     factory.start();
 
-    // Get a workflow stub using the same task list the worker uses.
-    TimerRescheduleWorkflow workflow =
-        workflowClient.newWorkflowStub(TimerRescheduleWorkflow.class);
-    // Execute a workflow waiting for it to complete.
-    String greeting = workflow.start();
-    System.out.println(greeting);
-    System.exit(0);
-  }
-}
-
-class ExpirationTimer {
-  private Instant expirationTime;
-  private final Supplier<Instant> currentInstant;
-  private final Duration window;
-
-  public ExpirationTimer(final Duration window) {
-    this.window = window;
-    this.currentInstant = () -> Instant.ofEpochMilli(Workflow.currentTimeMillis());
-    extend(window);
-  }
-
-  public ExpirationTimer(final Duration window, final Clock clock) {
-    this.window = window;
-    this.currentInstant = clock::instant;
-    extend(window);
-  }
-
-  public Duration getDuration() {
-    final Duration span = Duration.between(currentInstant.get(), expirationTime);
-    if (span.isNegative()) {
-      return Duration.ZERO;
-    }
-    return span;
-  }
-
-  public void waitForExpiration() {
-    while (!isExpired()) {
-      Workflow.sleep(getDuration());
-    }
-  }
-
-  public void reset() {
-    extend(window);
-  }
-
-  public boolean isExpired() {
-    return currentInstant.get().isAfter(expirationTime);
-  }
-
-  private void extend(final Duration window) {
-    expirationTime = currentInstant.get().plus(window);
+    //    TimerRescheduleWorkflow workflow =
+    //        workflowClient.newWorkflowStub(TimerRescheduleWorkflow.class);
+    //    String greeting = workflow.start();
+    //    System.out.println(greeting);
+    //    System.exit(0);
   }
 }
