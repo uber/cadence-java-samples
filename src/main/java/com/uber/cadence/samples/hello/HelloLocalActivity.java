@@ -17,17 +17,21 @@
 
 package com.uber.cadence.samples.hello;
 
-import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
-
 import com.uber.cadence.activity.ActivityMethod;
+import com.uber.cadence.activity.LocalActivityOptions;
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.client.WorkflowClientOptions;
+import com.uber.cadence.common.RetryOptions;
 import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
 import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
+
+import java.time.Duration;
+
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 
 /**
  * Hello World Cadence workflow that executes a single activity. Requires a local instance the
@@ -40,14 +44,14 @@ public class HelloLocalActivity {
   /** Workflow interface has to have at least one method annotated with @WorkflowMethod. */
   public interface GreetingWorkflow {
     /** @return greeting string */
-    @WorkflowMethod(executionStartToCloseTimeoutSeconds = 10, taskList = TASK_LIST)
+    @WorkflowMethod(executionStartToCloseTimeoutSeconds = 1000, taskList = TASK_LIST)
     String getGreeting(String name);
   }
 
   /** Activity interface is just a POJI. */
   public interface GreetingActivities {
     @ActivityMethod(scheduleToCloseTimeoutSeconds = 2)
-    String composeGreeting(String greeting, String name);
+    String composeGreeting(String greeting, String name, long sleepms);
   }
 
   /** GreetingWorkflow implementation that calls GreetingsActivities#composeGreeting. */
@@ -59,18 +63,38 @@ public class HelloLocalActivity {
      * activity invocations.
      */
     private final GreetingActivities activities =
-        Workflow.newLocalActivityStub(GreetingActivities.class);
+            Workflow.newLocalActivityStub(
+                    GreetingActivities.class,
+                    new LocalActivityOptions.Builder()
+                            .setScheduleToCloseTimeout(Duration.ofSeconds(300))
+                            .setRetryOptions(
+                                    // These options must be revised
+                                    new RetryOptions.Builder()
+                                            .setInitialInterval(Duration.ofSeconds(1))
+                                            .setMaximumAttempts(30)
+                                            .setBackoffCoefficient(2)
+                                            .build())
+                            .build());
 
     @Override
     public String getGreeting(String name) {
       // This is a blocking call that returns only after the activity has completed.
-      return activities.composeGreeting("Hello", name);
+      activities.composeGreeting("Hello", name, 0);
+      return activities.composeGreeting("Hello", name, 25 * 1000);
     }
   }
 
   static class GreetingActivitiesImpl implements GreetingActivities {
     @Override
-    public String composeGreeting(String greeting, String name) {
+    public String composeGreeting(String greeting, String name, long sleepms) {
+//      if (sleepms > 0) {
+//        throw new RuntimeException("fail");
+//      }
+      try {
+        Thread.sleep(sleepms);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
       return greeting + " " + name + "!";
     }
   }
