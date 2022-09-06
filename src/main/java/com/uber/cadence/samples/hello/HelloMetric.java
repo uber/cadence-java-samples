@@ -22,6 +22,8 @@ import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 import com.uber.cadence.activity.ActivityMethod;
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.client.WorkflowClientOptions;
+import com.uber.cadence.internal.compatibility.Thrift2ProtoAdapter;
+import com.uber.cadence.internal.compatibility.proto.serviceclient.IGrpcServiceStubs;
 import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.IWorkflowService;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
@@ -99,7 +101,7 @@ public class HelloMetric {
     final ClientOptions clientOptions =
         ClientOptions.newBuilder().setMetricsScope(createMetricScope()).build();
     //    final ClientOptions clientOptions = ClientOptions.newBuilder().build();
-    IWorkflowService service = new WorkflowServiceTChannel(clientOptions);
+    IWorkflowService service = new Thrift2ProtoAdapter(IGrpcServiceStubs.newInstance(clientOptions));
     final WorkflowClient workflowClient =
         WorkflowClient.newInstance(
             service, WorkflowClientOptions.newBuilder().setDomain(DOMAIN).build());
