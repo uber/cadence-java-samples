@@ -24,12 +24,10 @@ import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.client.WorkflowClientOptions;
 import com.uber.cadence.internal.compatibility.Thrift2ProtoAdapter;
 import com.uber.cadence.internal.compatibility.proto.serviceclient.IGrpcServiceStubs;
-import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.worker.Worker;
 import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
-import io.grpc.ManagedChannelBuilder;
 
 /**
  * Hello World Cadence workflow that executes a single activity. Requires a local instance the

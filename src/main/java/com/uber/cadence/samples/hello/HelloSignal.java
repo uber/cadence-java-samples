@@ -26,7 +26,6 @@ import com.uber.cadence.client.WorkflowOptions;
 import com.uber.cadence.internal.compatibility.Thrift2ProtoAdapter;
 import com.uber.cadence.internal.compatibility.proto.serviceclient.IGrpcServiceStubs;
 import com.uber.cadence.serviceclient.ClientOptions;
-import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
 import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.workflow.SignalMethod;
@@ -100,9 +99,13 @@ public class HelloSignal {
     // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
     WorkflowClient workflowClient =
         WorkflowClient.newInstance(
-                new Thrift2ProtoAdapter(IGrpcServiceStubs.newInstance(ClientOptions.newBuilder()
+            new Thrift2ProtoAdapter(
+                IGrpcServiceStubs.newInstance(
+                    ClientOptions.newBuilder()
                         .setFeatureFlags(
-                                new FeatureFlags().setWorkflowExecutionAlreadyCompletedErrorEnabled(true))
+                            new FeatureFlags()
+                                .setWorkflowExecutionAlreadyCompletedErrorEnabled(true))
+                        .setPort(7833)
                         .build())),
             WorkflowClientOptions.newBuilder().setDomain(DOMAIN).build());
     // Get worker to poll the task list.

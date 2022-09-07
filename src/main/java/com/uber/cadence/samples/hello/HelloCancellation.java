@@ -26,8 +26,6 @@ import com.uber.cadence.client.WorkflowOptions;
 import com.uber.cadence.client.WorkflowStub;
 import com.uber.cadence.internal.compatibility.Thrift2ProtoAdapter;
 import com.uber.cadence.internal.compatibility.proto.serviceclient.IGrpcServiceStubs;
-import com.uber.cadence.serviceclient.ClientOptions;
-import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
 import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.workflow.CancellationScope;

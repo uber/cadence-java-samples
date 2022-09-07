@@ -29,8 +29,6 @@ import com.uber.cadence.client.WorkflowClientOptions;
 import com.uber.cadence.client.WorkflowOptions;
 import com.uber.cadence.internal.compatibility.Thrift2ProtoAdapter;
 import com.uber.cadence.internal.compatibility.proto.serviceclient.IGrpcServiceStubs;
-import com.uber.cadence.serviceclient.ClientOptions;
-import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
 import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.workflow.Workflow;
@@ -131,7 +129,7 @@ public class HelloSearchAttributes {
 
   public static void main(String[] args) {
     final Thrift2ProtoAdapter cadenceService =
-            new Thrift2ProtoAdapter(IGrpcServiceStubs.newInstance());
+        new Thrift2ProtoAdapter(IGrpcServiceStubs.newInstance());
     // Get a new client
     // NOTE: to set a different options, you can do like this:
     // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
