@@ -25,8 +25,8 @@ import com.uber.cadence.client.WorkflowClientOptions;
 import com.uber.cadence.converter.DataConverter;
 import com.uber.cadence.converter.DataConverterException;
 import com.uber.cadence.converter.JsonDataConverter;
-import com.uber.cadence.serviceclient.ClientOptions;
-import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
+import com.uber.cadence.internal.compatibility.Thrift2ProtoAdapter;
+import com.uber.cadence.internal.compatibility.proto.serviceclient.IGrpcServiceStubs;
 import com.uber.cadence.worker.Worker;
 import com.uber.cadence.worker.WorkerFactory;
 import com.uber.cadence.workflow.Workflow;
@@ -190,7 +190,7 @@ public class HelloDataConverter {
     // ClientOptions.newBuilder().setRpcTimeout(5 * 1000).build();
     WorkflowClient workflowClient =
         WorkflowClient.newInstance(
-            new WorkflowServiceTChannel(ClientOptions.defaultInstance()),
+            new Thrift2ProtoAdapter(IGrpcServiceStubs.newInstance()),
             WorkflowClientOptions.newBuilder().setDataConverter(dc).setDomain(DOMAIN).build());
     // Get worker to poll the task list.
     WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
