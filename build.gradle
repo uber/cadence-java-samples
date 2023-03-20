@@ -51,8 +51,9 @@ dependencies {
 compileJava {
     dependsOn 'googleJavaFormat'
     options.encoding = 'UTF-8'
-    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    options.compilerArgs << "-Xdoclint:none"
     options.errorprone.errorproneArgs = ["-XepExcludedPaths:.*/generated-sources/.*"]
+    options.warnings = false
 }
 
 task execute(type: JavaExec) {
