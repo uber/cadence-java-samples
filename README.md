@@ -129,4 +129,14 @@ To run:
 
     ./gradlew -q execute -PmainClass=com.uber.cadence.samples.bookingsaga.TripBookingSaga
 
+### Sprint Boot Application
 
+Example of how to start a cadence worker service using Spring Boot Framework
+
+To run:
+
+    # Start Cadence Server
+    # see https://github.com/uber/cadence/tree/master/docker
+    # register domain
+    ./gradlew -q execute -PmainClass=com.uber.cadence.samples.common.RegisterDomain
+    ./gradlew -q execute -PmainClass=com.uber.cadence.samples.spring.CadenceSamplesApplication
