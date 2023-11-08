@@ -5,7 +5,8 @@ import static com.uber.cadence.samples.spring.common.Constant.TASK_LIST;
 
 import com.uber.cadence.client.WorkflowClient;
 import com.uber.cadence.client.WorkflowClientOptions;
-import com.uber.cadence.samples.spring.workflows.HelloWorldWorkflowImpl;
+import com.uber.cadence.samples.spring.workflows.impl.HelloWorldWorkflowImpl;
+import com.uber.cadence.samples.spring.workflows.impl.SignalWorkflowImpl;
 import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 import com.uber.cadence.worker.Worker;
@@ -33,7 +34,12 @@ public class CadenceAutoConfiguration {
     WorkflowClient workflowClient = context.getBean(WorkflowClient.class);
     WorkerFactory factory = WorkerFactory.newInstance(workflowClient);
     Worker worker = factory.newWorker(TASK_LIST);
+
+    // HelloWorldWorkflow registration
     worker.registerWorkflowImplementationTypes(HelloWorldWorkflowImpl.class);
+
+    // SignalWorkflow registration
+    worker.registerWorkflowImplementationTypes(SignalWorkflowImpl.class);
     factory.start();
   }
 }
