@@ -50,6 +50,7 @@ dependencies {
     testCompile group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
     testCompile group: 'org.powermock', name: 'powermock-api-mockito', version: '1.7.3'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: '0.11.0'
 }
 
 compileJava {
