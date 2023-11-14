@@ -1,6 +1,7 @@
-package com.uber.cadence.samples.spring.workflows;
+package com.uber.cadence.samples.spring.workflows.impl;
 
 import com.uber.cadence.samples.spring.models.SampleMessage;
+import com.uber.cadence.samples.spring.workflows.HelloWorldWorkflow;
 import com.uber.cadence.workflow.Workflow;
 import org.slf4j.Logger;
 
