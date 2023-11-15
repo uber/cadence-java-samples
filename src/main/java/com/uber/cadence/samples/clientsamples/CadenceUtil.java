@@ -15,22 +15,19 @@
  *  permissions and limitations under the License.
  */
 
-package com.uber.cadence.samples.spring.workflows.impl;
+package com.uber.cadence.samples.clientsamples;
 
-import com.uber.cadence.samples.spring.models.SampleMessage;
-import com.uber.cadence.samples.spring.workflows.HelloWorldWorkflow;
-import com.uber.cadence.workflow.Workflow;
-import org.slf4j.Logger;
+import static com.uber.cadence.samples.common.SampleConstants.DOMAIN;
 
-public class HelloWorldWorkflowImpl implements HelloWorldWorkflow {
-  private final Logger logger = Workflow.getLogger(HelloWorldWorkflowImpl.class);
+import com.uber.cadence.client.WorkflowClient;
+import com.uber.cadence.client.WorkflowClientOptions;
+import com.uber.cadence.serviceclient.ClientOptions;
+import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 
-  @Override
-  public String sayHello(SampleMessage message) {
-    logger.info("executing HelloWorldWorkflow::sayHello");
-
-    String result = "Hello, " + message.GetMessage();
-    logger.info("output: " + result);
-    return result;
+public class CadenceUtil {
+  public static WorkflowClient getWorkflowClient() {
+    return WorkflowClient.newInstance(
+        new WorkflowServiceTChannel(ClientOptions.defaultInstance()),
+        WorkflowClientOptions.newBuilder().setDomain(DOMAIN).build());
   }
 }
