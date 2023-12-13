@@ -25,9 +25,9 @@ import com.uber.cadence.serviceclient.ClientOptions;
 import com.uber.cadence.serviceclient.WorkflowServiceTChannel;
 
 public class CadenceUtil {
-    public static WorkflowClient getWorkflowClient() {
-        return WorkflowClient.newInstance(
-                new WorkflowServiceTChannel(ClientOptions.defaultInstance()),
-                WorkflowClientOptions.newBuilder().setDomain(DOMAIN).build());
-    }
+  public static WorkflowClient getWorkflowClient() {
+    return WorkflowClient.newInstance(
+        new WorkflowServiceTChannel(ClientOptions.defaultInstance()),
+        WorkflowClientOptions.newBuilder().setDomain(DOMAIN).build());
+  }
 }
