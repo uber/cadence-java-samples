@@ -26,18 +26,18 @@ import com.uber.cadence.samples.spring.workflows.HelloWorldWorkflow;
 import java.time.Duration;
 
 public class HelloWorldSample {
-    public static void main(String[] args) {
-        WorkflowClient workflowClient = CadenceUtil.getWorkflowClient();
-        WorkflowOptions workflowOptions =
-                new WorkflowOptions.Builder()
-                        .setExecutionStartToCloseTimeout(Duration.ofSeconds(30))
-                        .setTaskList(Constant.TASK_LIST)
-                        .build();
+  public static void main(String[] args) {
+    WorkflowClient workflowClient = CadenceUtil.getWorkflowClient();
+    WorkflowOptions workflowOptions =
+        new WorkflowOptions.Builder()
+            .setExecutionStartToCloseTimeout(Duration.ofSeconds(30))
+            .setTaskList(Constant.TASK_LIST)
+            .build();
 
-        HelloWorldWorkflow helloWorldWorkflow =
-                workflowClient.newWorkflowStub(HelloWorldWorkflow.class, workflowOptions);
-        WorkflowExecution execution =
-                WorkflowClient.start(helloWorldWorkflow::sayHello, new SampleMessage("Uber"));
-        System.out.printf("WorkflowID: %s, RunID: %s", execution.getWorkflowId(), execution.getRunId());
-    }
+    HelloWorldWorkflow helloWorldWorkflow =
+        workflowClient.newWorkflowStub(HelloWorldWorkflow.class, workflowOptions);
+    WorkflowExecution execution =
+        WorkflowClient.start(helloWorldWorkflow::sayHello, new SampleMessage("Uber"));
+    System.out.printf("WorkflowID: %s, RunID: %s", execution.getWorkflowId(), execution.getRunId());
+  }
 }

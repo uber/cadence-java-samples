@@ -42,7 +42,8 @@ public class SignalWorkflowImpl implements SignalWorkflow {
         this.greetingMsg = "";
 
         // A workflow execution cannot receive infinite number of signals due to history limit
-        // By default 10000 is MaximumSignalsPerExecution which can be configured by DynamicConfig of Cadence cluster.
+        // By default 10000 is MaximumSignalsPerExecution which can be configured by DynamicConfig
+        // of Cadence cluster.
         // But it's recommended to do continueAsNew after receiving certain number of signals.
         // in production, use a number <1000.
         if (count == 3) {
