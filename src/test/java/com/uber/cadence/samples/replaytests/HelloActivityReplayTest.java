@@ -31,14 +31,15 @@ import org.junit.Test;
 // workflowType in the first event of history).
 public class HelloActivityReplayTest {
 
-  //simple replayer test which checks the current workflow execution with the definition: should pass
+  // simple replayer test which checks the current workflow execution with the definition: should
+  // pass
   @Test
   public void testReplay() throws Exception {
     WorkflowReplayer.replayWorkflowExecutionFromResource(
         "replaytests/HelloActivity.json", HelloActivity.GreetingWorkflowImpl.class);
   }
 
-  //continue-as-new case for replayer tests
+  // continue-as-new case for replayer tests
   @Test
   public void testReplay_continueAsNew() throws Exception {
     WorkflowReplayer.replayWorkflowExecutionFromResource(
