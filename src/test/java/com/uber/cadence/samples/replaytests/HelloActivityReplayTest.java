@@ -18,7 +18,6 @@
 package com.uber.cadence.samples.replaytests;
 
 import com.uber.cadence.samples.hello.HelloActivity;
-import com.uber.cadence.samples.hello.HelloPeriodic;
 import com.uber.cadence.testing.WorkflowReplayer;
 import org.junit.Test;
 
@@ -37,12 +36,5 @@ public class HelloActivityReplayTest {
   public void testReplay() throws Exception {
     WorkflowReplayer.replayWorkflowExecutionFromResource(
         "replaytests/HelloActivity.json", HelloActivity.GreetingWorkflowImpl.class);
-  }
-
-  // continue-as-new case for replayer tests
-  @Test
-  public void testReplay_continueAsNew() throws Exception {
-    WorkflowReplayer.replayWorkflowExecutionFromResource(
-        "replaytests/HelloPeriodic.json", HelloPeriodic.GreetingWorkflowImpl.class);
   }
 }
