@@ -15,8 +15,10 @@
  *  permissions and limitations under the License.
  */
 
-package com.uber.cadence.samples.hello;
+package com.uber.cadence.samples.replaytests;
 
+import com.uber.cadence.samples.hello.HelloActivity;
+import com.uber.cadence.samples.hello.HelloPeriodic;
 import com.uber.cadence.testing.WorkflowReplayer;
 import org.junit.Test;
 
@@ -28,9 +30,18 @@ import org.junit.Test;
 // Or from Cadence Web UI. (You may need to put history file in resources folder; and change
 // workflowType in the first event of history).
 public class HelloActivityReplayTest {
+
+  //simple replayer test which checks the current workflow execution with the definition: should pass
   @Test
   public void testReplay() throws Exception {
     WorkflowReplayer.replayWorkflowExecutionFromResource(
-        "HelloActivity.json", HelloActivity.GreetingWorkflowImpl.class);
+        "replaytests/HelloActivity.json", HelloActivity.GreetingWorkflowImpl.class);
+  }
+
+  //continue-as-new case for replayer tests
+  @Test
+  public void testReplay_continueAsNew() throws Exception {
+    WorkflowReplayer.replayWorkflowExecutionFromResource(
+        "replaytests/HelloPeriodic.json", HelloPeriodic.GreetingWorkflowImpl.class);
   }
 }
