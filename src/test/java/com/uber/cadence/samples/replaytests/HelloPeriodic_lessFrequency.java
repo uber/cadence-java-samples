@@ -38,7 +38,7 @@ import com.uber.cadence.workflow.WorkflowMethod;
 import java.time.Duration;
 import java.util.Optional;
 
-public class HelloPeriodic_sleepTimerChange {
+public class HelloPeriodic_lessFrequency {
 
   static final String TASK_LIST = "HelloPeriodic";
   static final String PERIODIC_WORKFLOW_ID = "HelloPeriodic";
@@ -63,12 +63,9 @@ public class HelloPeriodic_sleepTimerChange {
 
   public static class GreetingWorkflowImpl implements GreetingWorkflow {
 
-    /**
-     * This value is so low just to make the example interesting to watch. In real life you would
-     * use something like 100 or a value that matches a business cycle. For example if it runs once
-     * an hour 24 would make sense.
-     */
-    private final int CONTINUE_AS_NEW_FREQUENCEY = 1000;
+    // If we change the value to 10 (compared to 1000 in original case), then non-determinism case
+    // is not hitting.
+    private final int CONTINUE_AS_NEW_FREQUENCEY = 1;
 
     private final GreetingActivities activities =
         Workflow.newActivityStub(

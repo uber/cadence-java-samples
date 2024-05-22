@@ -23,19 +23,27 @@ import org.junit.Test;
 
 public class HelloPeriodicReplayTest {
 
-  // continue-as-new case for replayer tests: Passing
+  /* Runs a history which ends with WorkflowExecutionContinuedAsNew. Replay fails because of the additional checks done for continue as new case by replayWorkflowHistory(). This should not have any error because it's a valid continue as new case. */
   @Test
   public void testReplay_continueAsNew() throws Exception {
     WorkflowReplayer.replayWorkflowExecutionFromResource(
         "replaytests/HelloPeriodic.json", HelloPeriodic.GreetingWorkflowImpl.class);
   }
 
-  // Continue as new case: change in sleep timer compared to original workflow definition. It should
+  // Continue as new case: change in frequency compared to original workflow definition by
+  // increasing number of times greet is hit. It should
   // fail. BUT it is currently passing.
   @Test
-  public void testReplay_continueAsNew_timerChange() throws Exception {
+  public void testReplay_continueAsNew_moreFrequency() throws Exception {
     WorkflowReplayer.replayWorkflowExecutionFromResource(
-        "replaytests/HelloPeriodic.json",
-        HelloPeriodic_sleepTimerChange.GreetingWorkflowImpl.class);
+        "replaytests/HelloPeriodic.json", HelloPeriodic_moreFrequency.GreetingWorkflowImpl.class);
+  }
+
+  // Continue as new case: If frequency is changed to lesser number.
+  // FAIL As expected: It should hit non-determinism case and it is hitting properly.
+  @Test
+  public void testReplay_continueAsNew_lessFrequency() throws Exception {
+    WorkflowReplayer.replayWorkflowExecutionFromResource(
+        "replaytests/HelloPeriodic.json", HelloPeriodic_lessFrequency.GreetingWorkflowImpl.class);
   }
 }
