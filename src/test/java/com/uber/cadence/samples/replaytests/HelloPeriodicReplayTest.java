@@ -41,9 +41,19 @@ public class HelloPeriodicReplayTest {
 
   // Continue as new case: If frequency is changed to lesser number.
   // FAIL As expected: It should hit non-determinism case and it is hitting properly.
+  //  @Test
+  //  public void testReplay_continueAsNew_lessFrequency() throws Exception {
+  //    WorkflowReplayer.replayWorkflowExecutionFromResource(
+  //        "replaytests/HelloPeriodic.json",
+  // HelloPeriodic_lessFrequency.GreetingWorkflowImpl.class);
+  //  }
+
+  // Continue as new case: when continue as new has child workflow as well
+  //EXPECTED: FAIL   ACTUAL: FAIL
 //  @Test
-//  public void testReplay_continueAsNew_lessFrequency() throws Exception {
+//  public void testReplay_continueAsNew_withChildWorkflows() throws Exception {
 //    WorkflowReplayer.replayWorkflowExecutionFromResource(
-//        "replaytests/HelloPeriodic.json", HelloPeriodic_lessFrequency.GreetingWorkflowImpl.class);
+//        "replaytests/HelloPeriodic.json",
+//        HelloPeriodic_withChildWorkflows.GreetingWorkflowImpl.class);
 //  }
 }

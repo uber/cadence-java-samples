@@ -31,17 +31,20 @@ import com.uber.cadence.client.WorkflowException;
 import com.uber.cadence.client.WorkflowStub;
 import com.uber.cadence.internal.compatibility.Thrift2ProtoAdapter;
 import com.uber.cadence.internal.compatibility.proto.serviceclient.IGrpcServiceStubs;
+import com.uber.cadence.samples.hello.HelloChild;
 import com.uber.cadence.worker.Worker;
 import com.uber.cadence.worker.WorkerFactory;
+import com.uber.cadence.workflow.Async;
+import com.uber.cadence.workflow.Promise;
 import com.uber.cadence.workflow.Workflow;
 import com.uber.cadence.workflow.WorkflowMethod;
 import java.time.Duration;
 import java.util.Optional;
 
-public class HelloPeriodic_moreFrequency {
+public class HelloPeriodic_withChildWorkflows {
 
-  static final String TASK_LIST = "HelloPeriodic";
-  static final String PERIODIC_WORKFLOW_ID = "HelloPeriodic";
+  static final String TASK_LIST = "HelloPeriodic_withChildWorkflow";
+  static final String PERIODIC_WORKFLOW_ID = "HelloPeriodic_withChildWorkflow";
 
   public interface GreetingWorkflow {
     @WorkflowMethod(
@@ -63,8 +66,7 @@ public class HelloPeriodic_moreFrequency {
 
   public static class GreetingWorkflowImpl implements GreetingWorkflow {
 
-    // If we change the value to 1, then non-determinism case will hit.
-    private final int CONTINUE_AS_NEW_FREQUENCEY = 100000000;
+    private final int CONTINUE_AS_NEW_FREQUENCEY = 1000;
 
     private final GreetingActivities activities =
         Workflow.newActivityStub(
@@ -81,6 +83,14 @@ public class HelloPeriodic_moreFrequency {
 
     @Override
     public void greetPeriodically(String name, Duration delay) {
+
+      HelloChild.GreetingChild child =
+          Workflow.newChildWorkflowStub(HelloChild.GreetingChild.class);
+
+      Promise<String> greeting = Async.function(child::composeGreeting, "Hello", name);
+
+      System.out.println(greeting.get());
+
       // Loop the predefined number of times then continue this workflow as new.
       // This is needed to periodically truncate the history size.
       for (int i = 0; i < CONTINUE_AS_NEW_FREQUENCEY; i++) {
@@ -89,24 +99,14 @@ public class HelloPeriodic_moreFrequency {
       }
       // Current workflow run stops executing after this call.
       continueAsNew.greetPeriodically(name, delay);
-      // unreachable line
     }
   }
 
   static class GreetingActivitiesImpl implements GreetingActivities {
 
-    // private int callCount = 1000;
-
     @Override
     public void greet(String greeting) {
-      // callCount++;
       System.out.println("From " + Activity.getWorkflowExecution() + ": " + greeting);
-
-      // Did not get Non-Determinism for this:
-      // EXPECTED: YES ACTUAL: NO
-      //      if (callCount > 100) {
-      //        throw new RuntimeException("Exceeded maximum call frequency");
-      //      }
     }
   }
 
