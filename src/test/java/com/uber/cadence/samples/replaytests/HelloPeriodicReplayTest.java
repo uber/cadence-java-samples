@@ -49,11 +49,11 @@ public class HelloPeriodicReplayTest {
   //  }
 
   // Continue as new case: when continue as new has child workflow as well
-  //EXPECTED: FAIL   ACTUAL: FAIL
-//  @Test
-//  public void testReplay_continueAsNew_withChildWorkflows() throws Exception {
-//    WorkflowReplayer.replayWorkflowExecutionFromResource(
-//        "replaytests/HelloPeriodic.json",
-//        HelloPeriodic_withChildWorkflows.GreetingWorkflowImpl.class);
-//  }
+  // EXPECTED: FAIL   ACTUAL: FAIL
+  //  @Test
+  //  public void testReplay_continueAsNew_withChildWorkflows() throws Exception {
+  //    WorkflowReplayer.replayWorkflowExecutionFromResource(
+  //        "replaytests/HelloPeriodic.json",
+  //        HelloPeriodic_withChildWorkflows.GreetingWorkflowImpl.class);
+  //  }
 }
